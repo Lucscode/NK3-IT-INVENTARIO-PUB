@@ -1,0 +1,78 @@
+/* ===== PAGES CSS ===== */
+
+/* ===== LOGIN ===== */
+.login-wrap {
+  position: fixed; inset: 0;
+  background: linear-gradient(135deg, #1a2035 0%, #2563eb 100%);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999; padding: 20px;
+}
+.login-card {
+  background: #fff;
+  border-radius: 16px; padding: 32px; width: 100%; max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+@media (max-width: 480px) { .login-card { padding: 24px; } }
+.login-logo { text-align: center; margin-bottom: 32px; }
+
+/* Role switch */
+.role-switch { display: flex; gap: 6px; background: #f3f4f6; padding: 4px; border-radius: 8px; }
+.role-opt {
+  flex: 1; padding: 7px 12px; border-radius: 6px; border: none;
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  cursor: pointer; background: transparent; color: var(--text2); transition: all .15s;
+}
+.role-opt.active {
+  background: #fff; color: var(--accent);
+  box-shadow: 0 1px 4px rgba(0,0,0,.1);
+}
+
+/* ===== KIT ITEMS ===== */
+.kit-items {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 12px; margin-bottom: 20px;
+}
+@media (max-width: 900px) { .kit-items { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 580px) { .kit-items { grid-template-columns: repeat(2, 1fr); } }
+
+.kit-item {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px; text-align: center;
+  transition: box-shadow .15s;
+}
+.kit-item:hover { box-shadow: var(--shadow); }
+.kit-item-icon  { font-size: 28px; margin-bottom: 8px; }
+.kit-item-name  { font-size: 11px; color: var(--text2); margin-bottom: 4px; font-weight: 600; }
+.kit-item-count { font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--accent); }
+
+/* ===== PROGRESS ===== */
+.progress { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width .3s; }
+
+/* ===== CLIENT AREA ===== */
+.client-bg { min-height: 100vh; background: var(--bg); display: none; }
+.client-bg.active { display: block; }
+.client-header {
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  padding: 0 24px; display: flex; align-items: center; height: 60px;
+}
+.client-content { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+
+/* ===== SOLICITATION FORM STEPS ===== */
+.sol-steps { display: flex; gap: 0; margin-bottom: 24px; overflow-x: auto; }
+.sol-step {
+  flex: 1; padding: 12px; text-align: center;
+  font-size: 11px; font-weight: 700; color: var(--text3);
+  border-bottom: 2px solid var(--border);
+  text-transform: uppercase; letter-spacing: .08em;
+  white-space: nowrap;
+}
+.sol-step.done { color: var(--accent); border-color: var(--accent); }
+
+/* ===== MINI BAR CHART ===== */
+.mini-bar { display: flex; align-items: flex-end; gap: 4px; height: 40px; }
+.bar-col {
+  flex: 1; background: var(--accent); border-radius: 3px 3px 0 0;
+  opacity: .6; transition: opacity .15s;
+}
+.bar-col:hover { opacity: 1; }

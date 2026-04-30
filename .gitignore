@@ -1,0 +1,21 @@
+# OS Metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs/Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific
+node_modules/
+.env
+*.log
+dist/
+build/
+js/config.js
+
+# Backups do projeto (caso existam)
+techstock_backup_*.json

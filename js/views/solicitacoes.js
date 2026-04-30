@@ -1,0 +1,42 @@
+// ===================== SOLICITAÇÕES =====================
+async function renderSolicitacoes() {
+  const list = await dbGetSolicitacoes();
+  _cacheSolicitacoes = list;
+  const statusOpts = ['pendente','em andamento','enviado','cancelado'];
+  document.getElementById('solTableBody').innerHTML = list.map(s=>`<tr>
+    <td><b>${s.colab||'—'}</b><br><span style="font-size:11px;color:var(--text2);">${s.email||''}</span></td>
+    <td>${s.dept||'—'}</td>
+    <td>${fmtDate(s.inicio)}</td>
+    <td>${s.kit ? '<span class="badge badge-green">Sim</span>' : '<span class="badge badge-gray">Não</span>'}</td>
+    <td>
+      <select onchange="updateSolStatus('${s.id}',this.value)"
+        style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;font-family:var(--sans);cursor:pointer;">
+        ${statusOpts.map(o=>`<option value="${o}" ${s.status===o?'selected':''}>${o.charAt(0).toUpperCase()+o.slice(1)}</option>`).join('')}
+      </select>
+    </td>
+    <td style="display:flex;gap:4px;">
+      <button class="btn btn-ghost btn-sm" onclick="openSolDetalhe('${s.id}')">Ver</button>
+      ${s.status === 'cancelado' ? `<button class="btn btn-danger btn-sm" onclick="deleteSol('${s.id}')" title="Excluir Solicitação">🗑</button>` : ''}
+    </td>
+  </tr>`).join('') || `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text2);">Nenhuma solicitação</td></tr>`;
+}
+
+async function updateSolStatus(id, status) {
+  await dbUpdateSolStatus(id, status);
+  updatePendBadge();
+  notify('Status atualizado!');
+  renderSolicitacoes();
+}
+
+function openSolDetalhe(id) {
+  const s = _cacheSolicitacoes.find(x => x.id === id);
+  if (!s) return;
+  alert(`Solicitação #${s.id}\n\nColaborador: ${s.colab}\nDepartamento: ${s.dept}\nEmail: ${s.email}\nTelefone: ${s.tel||'—'}\nEndereço: ${s.endereco||'—'}\nInício: ${fmtDate(s.inicio)}\nKit: ${s.kit?'Sim':'Não'}\nObs: ${s.obs||'—'}`);
+}
+
+async function deleteSol(id) {
+  if (!confirm('Tem certeza que deseja excluir esta solicitação cancelada?')) return;
+  await dbDeleteSolicitacao(id);
+  notify('Solicitação excluída!');
+  renderSolicitacoes();
+}

@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NK3IT — Inventário de TI</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+
+<body>
+
+  <!-- NOTIFICATIONS -->
+  <div class="notif-stack" id="notifStack"></div>
+
+  <!-- LOGIN -->
+  <div class="login-wrap" id="loginWrap">
+    <div class="login-card">
+      <div class="login-logo">
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;">
+          <div class="logo-mark" style="width:40px;height:40px;font-size:16px;">TS</div>
+          <div>
+            <div style="font-family:var(--mono);font-size:18px;font-weight:700;">NK3IT Stock</div>
+            <div style="font-size:11px;color:var(--text3);">Sistema de Inventário de TI</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>Email</label>
+        <input type="email" id="loginEmail" value="suporte.n1@nk3.com.br" placeholder="suporte.n1@nk3.com.br">
+      </div>
+      <div class="form-group" style="margin-bottom:20px;">
+        <label>Senha</label>
+        <input type="password" id="loginPass" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;" onclick="doLogin()">Entrar
+        →</button>
+      <p style="text-align:center;margin-top:14px;font-size:11px;color:var(--text3);">Insira suas credenciais para acessar</p>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div class="app" id="mainApp" style="display:none;">
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark">TS</div>
+        <div>
+          <div class="logo-text">NK3IT</div>
+          <div class="logo-sub">INVENTÁRIO DE TI</div>
+        </div>
+      </div>
+
+      <div class="sidebar-section" id="adminSectionPrincipal">
+        <div class="sidebar-label">Principal</div>
+        <div class="nav-item active" onclick="goTo('dashboard')">
+          <span class="nav-icon"><i class="bi bi-grid-1x2-fill"></i></span> Dashboard
+        </div>
+        <div class="nav-item" onclick="goTo('ativos')">
+          <span class="nav-icon"><i class="bi bi-laptop"></i></span> Ativos
+        </div>
+        <div class="nav-item" onclick="goTo('colaboradores')">
+          <span class="nav-icon"><i class="bi bi-people"></i></span> Colaboradores
+        </div>
+        <div class="nav-item" onclick="goTo('historico')">
+          <span class="nav-icon"><i class="bi bi-clock-history"></i></span> Histórico
+        </div>
+      </div>
+
+      <div class="sidebar-section" id="adminSectionOperacoes">
+        <div class="sidebar-label">Operações</div>
+        <div class="nav-item" onclick="goTo('kits')">
+          <span class="nav-icon"><i class="bi bi-gift"></i></span> Kits Boas-Vindas
+        </div>
+        <div class="nav-item" onclick="goTo('solicitacoes')" id="navSolicitacoes">
+          <span class="nav-icon"><i class="bi bi-inbox"></i></span> Solicitações
+          <span class="nav-badge" id="pendBadge">0</span>
+        </div>
+      </div>
+
+      <div class="sidebar-section" id="clientSection" style="display:none;">
+        <div class="sidebar-label">Área do Cliente</div>
+        <div class="nav-item" onclick="goTo('area-cliente')">
+          <span class="nav-icon"><i class="bi bi-person-workspace"></i></span> Área do Cliente
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="user-pill">
+          <div class="user-avatar" id="userAvatarSidebar">AD</div>
+          <div>
+            <div class="user-name" id="userNameSidebar">Admin</div>
+            <div class="user-role" id="userRoleSidebar">Administrador</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;" onclick="openExportModal()">
+          <i class="bi bi-download" style="margin-right:6px;"></i> Exportar
+        </button>
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px;justify-content:center;"
+          onclick="doLogout()"> <i class="bi bi-box-arrow-right" style="margin-right:6px;"></i> Sair</button>
+      </div>
+    </nav>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="topbar">
+        <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+        <div class="topbar-left">
+          <div class="topbar-title" id="pageTitle">Dashboard</div>
+          <div class="topbar-sub" id="pageSub">Visão geral do Inventário de TI</div>
+        </div>
+        <div class="topbar-search hide-mobile">
+          <span class="search-icon"><i class="bi bi-search"></i></span>
+          <input type="text" placeholder="Buscar..." id="globalSearch" oninput="handleSearch(this.value)">
+        </div>
+        <button class="btn btn-primary" id="topbarAdd" onclick="openCreateModal()"><i class="bi bi-plus-lg"></i> <span class="hide-mobile">Novo Ativo</span></button>
+      </div>
+
+      <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+      <div class="content">
+
+        <!-- DASHBOARD -->
+        <div class="page active" id="page-dashboard">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-card-info">
+                <div class="stat-label">Total de Ativos</div>
+                <div class="stat-num" id="statTotal">0</div>
+              </div>
+              <div class="stat-icon-box stat-icon-blue"><i class="bi bi-pc-display"></i></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-info">
+                <div class="stat-label">Disponíveis</div>
+                <div class="stat-num" id="statDisp">0</div>
+              </div>
+              <div class="stat-icon-box stat-icon-green"><i class="bi bi-check-circle"></i></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-info">
+                <div class="stat-label">Em Uso</div>
+                <div class="stat-num" id="statUso">0</div>
+              </div>
+              <div class="stat-icon-box stat-icon-purple"><i class="bi bi-person-check"></i></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-info">
+                <div class="stat-label">Manutenção</div>
+                <div class="stat-num" id="statMan">0</div>
+              </div>
+              <div class="stat-icon-box stat-icon-orange"><i class="bi bi-tools"></i></div>
+            </div>
+          </div>
+
+          <!-- Ativos Recentes (grid de cards) -->
+          <div class="card" style="margin-bottom:16px;">
+            <div class="section-header">
+              <div class="section-title">Ativos Recentes</div>
+              <button class="btn btn-ghost btn-sm" onclick="goTo('ativos')">Ver todos →</button>
+            </div>
+            <div id="dashRecentAssets"></div>
+          </div>
+
+          <!-- Atividade Recente + Alertas -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="card">
+              <div class="section-header">
+                <div class="section-title">Atividade Recente</div>
+                <button class="btn btn-ghost btn-sm" onclick="goTo('historico')">Ver tudo →</button>
+              </div>
+              <div id="dashActivity"></div>
+            </div>
+            <div class="card">
+              <div class="section-header">
+                <div class="section-title">⚠ Alertas de Garantia</div>
+              </div>
+              <div id="dashAlerts"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ATIVOS -->
+        <div class="page" id="page-ativos">
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <div class="filters" id="ativoFilters">
+                <button class="filter-btn active" onclick="filterAtivos('todos',this)">Todos</button>
+                <button class="filter-btn" onclick="filterAtivos('disponivel',this)">Disponível</button>
+                <button class="filter-btn" onclick="filterAtivos('em uso',this)">Em Uso</button>
+                <button class="filter-btn" onclick="filterAtivos('manutencao',this)">Manutenção</button>
+                <button class="filter-btn" onclick="filterAtivos('estoque',this)">Estoque</button>
+                <button class="filter-btn" onclick="filterAtivos('descartado',this)">Descartado</button>
+              </div>
+            </div>
+            <div class="toolbar-right">
+              <div class="view-toggle">
+                <button class="view-btn active" id="viewGrid" onclick="setView('grid')"><i class="bi bi-grid-3x3-gap"></i></button>
+                <button class="view-btn" id="viewList" onclick="setView('list')"><i class="bi bi-list-ul"></i></button>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="openImportModal('ativos')"><i class="bi bi-upload"></i> Importar CSV</button>
+            </div>
+          </div>
+          <div id="ativosContainer"></div>
+        </div>
+
+        <!-- COLABORADORES -->
+        <div class="page" id="page-colaboradores">
+          <div class="toolbar">
+            <div class="toolbar-left"></div>
+            <div class="toolbar-right">
+              <button class="btn btn-ghost btn-sm" onclick="openImportModal('colaboradores')"><i class="bi bi-upload"></i> Importar CSV</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Departamento</th>
+                    <th>Cargo</th>
+                    <th>Ativos</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="colabTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- HISTÓRICO -->
+        <div class="page" id="page-historico">
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:52px;"></th>
+                    <th>Evento</th>
+                    <th style="text-align:right;">Data</th>
+                  </tr>
+                </thead>
+                <tbody id="histTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- KITS -->
+        <div class="page" id="page-kits">
+          <div class="tabs">
+            <div class="tab active" onclick="kitTab('estoque',this)">Estoque</div>
+            <div class="tab" onclick="kitTab('saida',this)">Registrar Saída</div>
+            <div class="tab" onclick="kitTab('historico',this)">Histórico</div>
+          </div>
+          <div id="kitTabContent"></div>
+        </div>
+
+        <!-- SOLICITAÇÕES -->
+        <div class="page" id="page-solicitacoes">
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Colaborador</th>
+                    <th>Departamento</th>
+                    <th>Data Início</th>
+                    <th>Kit</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="solTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ÁREA DO CLIENTE -->
+        <div class="page" id="page-area-cliente">
+          <div class="tabs">
+            <div class="tab active" onclick="clientTab('solicitar',this)">📋 Solicitar Máquina</div>
+            <div class="tab" onclick="clientTab('kits',this)">🎁 Kits</div>
+            <div class="tab" onclick="clientTab('maquinas',this)">💻 Máquinas</div>
+          </div>
+          <div id="clientTabContent"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAIS ===== -->
+
+  <!-- MODAL: NOVO ATIVO -->
+  <div class="modal-overlay" id="modalNovoAtivo">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modalAtivoTitle">Novo Ativo</div>
+        <button class="modal-close" onclick="closeModal('modalNovoAtivo')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nome / Modelo *</label>
+            <input type="text" id="ativoNome" placeholder="Ex: Dell XPS 15">
+          </div>
+          <div class="form-group">
+            <label>Patrimônio *</label>
+            <input type="text" id="ativoPatrimonio" placeholder="TI-001">
+          </div>
+          <div class="form-group">
+            <label>Marca</label>
+            <input type="text" id="ativoMarca" placeholder="Dell, HP, Lenovo...">
+          </div>
+          <div class="form-group">
+            <label>Modelo</label>
+            <input type="text" id="ativoModelo" placeholder="XPS 15, EliteDesk...">
+          </div>
+          <div class="form-group">
+            <label>Número de Série</label>
+            <input type="text" id="ativoSerie" placeholder="SN123456">
+          </div>
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="ativoTipo">
+              <option>Notebook</option>
+              <option>Desktop</option>
+              <option>Monitor</option>
+              <option>Tablet</option>
+              <option>Celular</option>
+              <option>Periférico</option>
+              <option>Servidor</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Processador</label>
+            <input type="text" id="ativoProc" placeholder="Intel Core i7-12th">
+          </div>
+          <div class="form-group">
+            <label>RAM</label>
+            <input type="text" id="ativoRam" placeholder="16GB DDR5">
+          </div>
+          <div class="form-group">
+            <label>Armazenamento</label>
+            <input type="text" id="ativoDisco" placeholder="512GB NVMe SSD">
+          </div>
+          <div class="form-group">
+            <label>Sistema Operacional</label>
+            <input type="text" id="ativoSO" placeholder="Windows 11 Pro">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="ativoStatus">
+              <option value="disponivel">Disponível</option>
+              <option value="em uso">Em Uso</option>
+              <option value="manutencao">Manutenção</option>
+              <option value="estoque">Estoque</option>
+              <option value="descartado">Descartado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Estado de Saúde</label>
+            <select id="ativoSaude">
+              <option value="bom">🟢 Bom</option>
+              <option value="regular">🟡 Regular</option>
+              <option value="ruim">🔴 Ruim</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Colaborador Vinculado</label>
+            <input type="text" id="ativoColab" placeholder="Nome do colaborador" list="colabList">
+            <datalist id="colabList"></datalist>
+          </div>
+          <div class="form-group">
+            <label>Localização</label>
+            <input type="text" id="ativoLocalizacao" placeholder="Sala 10, Bancada 3...">
+          </div>
+          <div class="form-group">
+            <label>Garantia até</label>
+            <input type="date" id="ativoGarantia">
+          </div>
+          <div class="form-group span2">
+            <label>Observações</label>
+            <textarea id="ativoObs" placeholder="Notas adicionais..."></textarea>
+          </div>
+          <div class="form-group span2">
+            <label>Ícone do Equipamento</label>
+            <select id="ativoEmoji">
+              <option value="laptop">Laptop</option>
+              <option value="pc-display">Desktop</option>
+              <option value="printer">Impressora</option>
+              <option value="phone">Celular</option>
+              <option value="keyboard">Teclado</option>
+              <option value="mouse">Mouse</option>
+              <option value="display">Monitor</option>
+              <option value="hdd-stack">Servidor</option>
+              <option value="tablet">Tablet</option>
+              <option value="router">Roteador</option>
+              <option value="headset">Headset</option>
+            </select>
+          </div>
+          <div class="form-group span2">
+            <label>📷 Fotos do Equipamento <span style="font-size:10px;font-weight:400;color:var(--text2);">(até 5 fotos
+                — salve o ativo primeiro)</span></label>
+            <div id="fotoGallery" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalNovoAtivo')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveAtivo()">Salvar Ativo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALHE ATIVO -->
+  <div class="modal-overlay" id="modalDetalheAtivo">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <div class="modal-title">Detalhes do Ativo</div>
+        <button class="modal-close" onclick="closeModal('modalDetalheAtivo')">×</button>
+      </div>
+      <div class="modal-body" id="modalDetalheBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" id="btnDeleteAtivo">🗑 Excluir</button>
+        <button class="btn btn-ghost" onclick="closeModal('modalDetalheAtivo')">Fechar</button>
+        <button class="btn btn-primary" id="btnEditAtivo">✏ Editar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NOVO COLABORADOR -->
+  <div class="modal-overlay" id="modalNovoColab">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modalColabTitle">Novo Colaborador</div>
+        <button class="modal-close" onclick="closeModal('modalNovoColab')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nome *</label>
+            <input type="text" id="colabNome" placeholder="Nome Completo">
+          </div>
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" id="colabEmail" placeholder="nome@empresa.com">
+          </div>
+          <div class="form-group">
+            <label>Departamento</label>
+            <input type="text" id="colabDept" placeholder="Ex: Engenharia">
+          </div>
+          <div class="form-group">
+            <label>Cargo</label>
+            <input type="text" id="colabCargo" placeholder="Ex: Desenvolvedor">
+          </div>
+          <div class="form-group">
+            <label>Telefone</label>
+            <input type="text" id="colabTel" placeholder="(11) 99999-9999">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="colabStatus">
+              <option value="ativo">Ativo</option>
+              <option value="inativo">Inativo</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalNovoColab')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveColab()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: IMPORTAR CSV -->
+  <div class="modal-overlay" id="modalImport">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modalImportTitle">Importar CSV</div>
+        <button class="modal-close" onclick="closeModal('modalImport')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle-fill"></i> <span id="importHint">Faça upload de um arquivo CSV com os dados.</span>
+        </div>
+        <div class="upload-zone" onclick="document.getElementById('csvFile').click()">
+          <div class="upload-zone-icon"><i class="bi bi-file-earmark-arrow-up"></i></div>
+          <div style="font-weight:600;margin-bottom:4px;">Clique para selecionar o CSV</div>
+          <div style="font-size:12px;">ou arraste o arquivo aqui</div>
+        </div>
+        <input type="file" id="csvFile" accept=".csv" style="display:none;" onchange="handleCSV(this)">
+        <div id="csvPreview" style="margin-top:16px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalImport')">Cancelar</button>
+        <button class="btn btn-primary" id="btnImportConfirm" onclick="confirmImport()"
+          style="display:none;">Importar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EXPORTAR -->
+  <div class="modal-overlay" id="modalExport">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Exportar Dados</div>
+        <button class="modal-close" onclick="closeModal('modalExport')">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--text2);margin-bottom:12px;font-size:13px;">Exportar em CSV:</p>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+          <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="exportCSV('ativos')"><i class="bi bi-laptop"></i> Exportar
+            Ativos</button>
+          <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="exportCSV('colaboradores')"><i class="bi bi-people"></i>
+            Exportar Colaboradores</button>
+          <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="exportCSV('historico')"><i class="bi bi-clock-history"></i> Exportar
+            Histórico</button>
+          <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="exportCSV('kits')"><i class="bi bi-gift"></i> Exportar
+            Kits</button>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:16px;">
+          <p style="color:var(--text2);margin-bottom:12px;font-size:13px;font-weight:600;"><i class="bi bi-database-fill-check"></i> Backup completo
+            (recomendado):</p>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary" style="flex:1;" onclick="exportBackup()"><i class="bi bi-cloud-download"></i> Exportar Backup JSON</button>
+            <label class="btn btn-ghost" style="flex:1;justify-content:center;cursor:pointer;">
+              <i class="bi bi-cloud-upload"></i> Restaurar Backup
+              <input type="file" accept=".json" style="display:none;" onchange="importBackup(this.files[0])">
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalExport')">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KIT SAÍDA -->
+  <div class="modal-overlay" id="modalKitSaida">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Registrar Saída de Kit</div>
+        <button class="modal-close" onclick="closeModal('modalKitSaida')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group span2">
+            <label>Colaborador *</label>
+            <input type="text" id="kitColabSaida" placeholder="Nome do colaborador" list="colabList2">
+            <datalist id="colabList2"></datalist>
+          </div>
+          <div class="form-group">
+            <label>Quantidade de Kits</label>
+            <input type="number" id="kitQtdSaida" value="1" min="1">
+          </div>
+          <div class="form-group">
+            <label>Data</label>
+            <input type="date" id="kitDataSaida">
+          </div>
+          <div class="form-group span2">
+            <label>Observações</label>
+            <textarea id="kitObsSaida" placeholder="Observações opcionais..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalKitSaida')">Cancelar</button>
+        <button class="btn btn-primary" onclick="registrarSaidaKit()">Registrar Saída</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: AJUSTAR ESTOQUE KIT -->
+  <div class="modal-overlay" id="modalKitEstoque">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Adicionar ao Estoque</div>
+        <button class="modal-close" onclick="closeModal('modalKitEstoque')">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="kitStockForm"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalKitEstoque')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveKitStock()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core -->
+  <script src="js/supabase.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/navigation.js"></script>
+  <script src="js/csv.js"></script>
+
+  <!-- Views -->
+  <script src="js/views/dashboard.js"></script>
+  <script src="js/views/ativos.js"></script>
+  <script src="js/views/colaboradores.js"></script>
+  <script src="js/views/historico.js"></script>
+  <script src="js/views/kits.js"></script>
+  <script src="js/views/solicitacoes.js"></script>
+  <script src="js/views/cliente.js"></script>
+
+  <!-- Init -->
+  <script src="js/init.js"></script>
+</body>
+
+</html>
