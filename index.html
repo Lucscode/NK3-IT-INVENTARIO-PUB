@@ -26,24 +26,25 @@
     <div class="login-card">
       <div class="login-logo">
         <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;">
-          <div class="logo-mark" style="width:40px;height:40px;font-size:16px;">TS</div>
+          <div class="logo-mark" style="width:40px;height:40px;font-size:16px;">IT</div>
           <div>
-            <div style="font-family:var(--mono);font-size:18px;font-weight:700;">NK3IT Stock</div>
+            <div style="font-family:var(--mono);font-size:18px;font-weight:700;">Inventário</div>
             <div style="font-size:11px;color:var(--text3);">Sistema de Inventário de TI</div>
           </div>
         </div>
       </div>
       <div class="form-group" style="margin-bottom:14px;">
         <label>Email</label>
-        <input type="email" id="loginEmail" value="suporte.n1@nk3.com.br" placeholder="suporte.n1@nk3.com.br">
+        <input type="email" id="loginEmail" value="" placeholder="Seu Email">
       </div>
       <div class="form-group" style="margin-bottom:20px;">
         <label>Senha</label>
-        <input type="password" id="loginPass" placeholder="••••••••">
+        <input type="password" id="loginPass" placeholder="Sua Senha">
       </div>
       <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;" onclick="doLogin()">Entrar
         →</button>
-      <p style="text-align:center;margin-top:14px;font-size:11px;color:var(--text3);">Insira suas credenciais para acessar</p>
+      <p style="text-align:center;margin-top:14px;font-size:11px;color:var(--text3);">Insira suas credenciais para
+        acessar</p>
     </div>
   </div>
 
@@ -121,7 +122,8 @@
           <span class="search-icon"><i class="bi bi-search"></i></span>
           <input type="text" placeholder="Buscar..." id="globalSearch" oninput="handleSearch(this.value)">
         </div>
-        <button class="btn btn-primary" id="topbarAdd" onclick="openCreateModal()"><i class="bi bi-plus-lg"></i> <span class="hide-mobile">Novo Ativo</span></button>
+        <button class="btn btn-primary" id="topbarAdd" onclick="openCreateModal()"><i class="bi bi-plus-lg"></i> <span
+            class="hide-mobile">Novo Ativo</span></button>
       </div>
 
       <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
@@ -203,10 +205,12 @@
             </div>
             <div class="toolbar-right">
               <div class="view-toggle">
-                <button class="view-btn active" id="viewGrid" onclick="setView('grid')"><i class="bi bi-grid-3x3-gap"></i></button>
+                <button class="view-btn active" id="viewGrid" onclick="setView('grid')"><i
+                    class="bi bi-grid-3x3-gap"></i></button>
                 <button class="view-btn" id="viewList" onclick="setView('list')"><i class="bi bi-list-ul"></i></button>
               </div>
-              <button class="btn btn-ghost btn-sm" onclick="openImportModal('ativos')"><i class="bi bi-upload"></i> Importar CSV</button>
+              <button class="btn btn-ghost btn-sm" onclick="openImportModal('ativos')"><i class="bi bi-upload"></i>
+                Importar CSV</button>
             </div>
           </div>
           <div id="ativosContainer"></div>
@@ -217,7 +221,8 @@
           <div class="toolbar">
             <div class="toolbar-left"></div>
             <div class="toolbar-right">
-              <button class="btn btn-ghost btn-sm" onclick="openImportModal('colaboradores')"><i class="bi bi-upload"></i> Importar CSV</button>
+              <button class="btn btn-ghost btn-sm" onclick="openImportModal('colaboradores')"><i
+                  class="bi bi-upload"></i> Importar CSV</button>
             </div>
           </div>
           <div class="card">
@@ -496,7 +501,8 @@
       </div>
       <div class="modal-body">
         <div class="alert alert-info">
-          <i class="bi bi-info-circle-fill"></i> <span id="importHint">Faça upload de um arquivo CSV com os dados.</span>
+          <i class="bi bi-info-circle-fill"></i> <span id="importHint">Faça upload de um arquivo CSV com os
+            dados.</span>
         </div>
         <div class="upload-zone" onclick="document.getElementById('csvFile').click()">
           <div class="upload-zone-icon"><i class="bi bi-file-earmark-arrow-up"></i></div>
@@ -524,20 +530,26 @@
       <div class="modal-body">
         <p style="color:var(--text2);margin-bottom:12px;font-size:13px;">Exportar em CSV:</p>
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
-          <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="exportCSV('ativos')"><i class="bi bi-laptop"></i> Exportar
+          <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="exportCSV('ativos')"><i
+              class="bi bi-laptop"></i> Exportar
             Ativos</button>
-          <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="exportCSV('colaboradores')"><i class="bi bi-people"></i>
+          <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="exportCSV('colaboradores')"><i
+              class="bi bi-people"></i>
             Exportar Colaboradores</button>
-          <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="exportCSV('historico')"><i class="bi bi-clock-history"></i> Exportar
+          <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="exportCSV('historico')"><i
+              class="bi bi-clock-history"></i> Exportar
             Histórico</button>
-          <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="exportCSV('kits')"><i class="bi bi-gift"></i> Exportar
+          <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="exportCSV('kits')"><i
+              class="bi bi-gift"></i> Exportar
             Kits</button>
         </div>
         <div style="border-top:1px solid var(--border);padding-top:16px;">
-          <p style="color:var(--text2);margin-bottom:12px;font-size:13px;font-weight:600;"><i class="bi bi-database-fill-check"></i> Backup completo
+          <p style="color:var(--text2);margin-bottom:12px;font-size:13px;font-weight:600;"><i
+              class="bi bi-database-fill-check"></i> Backup completo
             (recomendado):</p>
           <div style="display:flex;gap:8px;">
-            <button class="btn btn-primary" style="flex:1;" onclick="exportBackup()"><i class="bi bi-cloud-download"></i> Exportar Backup JSON</button>
+            <button class="btn btn-primary" style="flex:1;" onclick="exportBackup()"><i
+                class="bi bi-cloud-download"></i> Exportar Backup JSON</button>
             <label class="btn btn-ghost" style="flex:1;justify-content:center;cursor:pointer;">
               <i class="bi bi-cloud-upload"></i> Restaurar Backup
               <input type="file" accept=".json" style="display:none;" onchange="importBackup(this.files[0])">
@@ -605,7 +617,6 @@
 
   <!-- Core -->
   <script src="js/supabase.js"></script>
-  <script src="js/config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/auth.js"></script>

@@ -1,19 +1,11 @@
-// ===================== LOCAL STORAGE DATABASE =====================
-// Substitui o Supabase — todos os dados são persistidos no localStorage do navegador.
-// Mesmas assinaturas de função para compatibilidade total com os demais arquivos.
+// ===================== SUPABASE DATABASE =====================
+const SUPABASE_URL = 'https://etwciyqhrvhzffxstyyk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0d2NpeXFocnZoemZmeHN0eXlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3NDc1MTIsImV4cCI6MjA5MzMyMzUxMn0.F0-L9MD3jovhRRe6ZZozBkbvco5CHCZZtbB-swOFHtA';
+const STORAGE_BUCKET = 'fotos-ativos';
 
-const STORAGE_BUCKET = 'fotos-ativos'; // mantido para compatibilidade (fotos via URL)
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ─── Helpers ─────────────────────────────────────────────────
-function _lsGet(key) {
-  try { return JSON.parse(localStorage.getItem('techstock_' + key) || 'null'); } catch { return null; }
-}
-function _lsSet(key, val) {
-  try { localStorage.setItem('techstock_' + key, JSON.stringify(val)); } catch(e) {
-    console.error('[LocalDB] Erro ao salvar:', e);
-    notify('Armazenamento cheio! Exporte dados e limpe o cache.', 'error');
-  }
-}
 function _uuid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
     const r = Math.random() * 16 | 0;
@@ -21,258 +13,248 @@ function _uuid() {
   });
 }
 function _now() { return new Date().toISOString(); }
+function _lsGet(key) { return null; }
+function _lsSet(key, val) { /* no-op */ }
+function _throw(msg, err) {
+  console.error(`[DB] ${msg}`, err);
+  throw new Error(err?.message || msg);
+}
 
-// ─── Inicializar estruturas se não existirem ──────────────────
-(function _init() {
-  if (!_lsGet('ativos'))       _lsSet('ativos', []);
-  if (!_lsGet('ativo_fotos'))  _lsSet('ativo_fotos', []);
-  if (!_lsGet('colaboradores'))_lsSet('colaboradores', []);
-  if (!_lsGet('historico'))    _lsSet('historico', []);
-  if (!_lsGet('kit_historico'))_lsSet('kit_historico', []);
-  if (!_lsGet('solicitacoes')) _lsSet('solicitacoes', []);
-  if (!_lsGet('kit_estoque'))  _lsSet('kit_estoque', {
-    mochila: 0, squeeze: 0, caderno: 0, caneta: 0, mousepad: 0
-  });
-})();
+// ─── AUTH ─────────────────────────────────────────────────────
+async function dbSignIn(email, pass) {
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) _throw('Login falhou', error);
+  return data;
+}
 
-// ─── Stub do cliente Supabase (para compatibilidade) ─────────
-const sb = null; // não usado mais — mantido para não quebrar checagens de typeof
+async function dbSignOut() {
+  await sb.auth.signOut();
+}
+
+async function dbGetPerfil(userId) {
+  const { data, error } = await sb.from('perfis').select('*').eq('id', userId).single();
+  if (error) return null;
+  return data;
+}
 
 // ─── ATIVOS ──────────────────────────────────────────────────
 async function dbGetAtivos() {
-  const list = _lsGet('ativos') || [];
-  return list.sort((a, b) => b.created_at?.localeCompare(a.created_at || '') || 0);
+  const { data, error } = await sb
+    .from('ativos')
+    .select('*, ativo_fotos(id, url, ordem)')
+    .order('created_at', { ascending: false });
+  if (error) _throw('Erro ao buscar ativos', error);
+  return data || [];
 }
 
 async function dbGetAtivoById(id) {
-  const list  = _lsGet('ativos') || [];
-  const ativo = list.find(a => a.id === id);
-  if (!ativo) return null;
-  const fotos = (_lsGet('ativo_fotos') || []).filter(f => f.ativo_id === id);
-  return { ...ativo, ativo_fotos: fotos };
+  const { data, error } = await sb
+    .from('ativos')
+    .select('*, ativo_fotos(id, url, storage_path, ordem)')
+    .eq('id', id)
+    .single();
+  if (error) _throw('Erro ao buscar ativo', error);
+  return data;
 }
 
 async function dbCreateAtivo(payload) {
-  const list = _lsGet('ativos') || [];
-  const novo = { ...payload, id: _uuid(), created_at: _now() };
-  list.unshift(novo);
-  _lsSet('ativos', list);
-  return novo;
+  const { data, error } = await sb.from('ativos').insert([payload]).select().single();
+  if (error) _throw('Erro ao criar ativo', error);
+  return data;
 }
 
 async function dbUpdateAtivo(id, payload) {
-  const list = _lsGet('ativos') || [];
-  const idx  = list.findIndex(a => a.id === id);
-  if (idx === -1) return null;
-  list[idx] = { ...list[idx], ...payload };
-  _lsSet('ativos', list);
-  return list[idx];
+  const { data, error } = await sb.from('ativos').update(payload).eq('id', id).select().single();
+  if (error) _throw('Erro ao atualizar ativo', error);
+  return data;
 }
 
 async function dbDeleteAtivo(id) {
-  const list  = (_lsGet('ativos') || []).filter(a => a.id !== id);
-  const fotos = (_lsGet('ativo_fotos') || []).filter(f => f.ativo_id !== id);
-  _lsSet('ativos', list);
-  _lsSet('ativo_fotos', fotos);
+  const { error } = await sb.from('ativos').delete().eq('id', id);
+  if (error) _throw('Erro ao deletar ativo', error);
   return true;
 }
 
-// ─── FOTOS (armazenadas como base64 ou URL) ───────────────────
+// ─── FOTOS ───────────────────────────────────────────────────
 async function dbGetFotos(ativoId) {
-  const all = _lsGet('ativo_fotos') || [];
-  return all.filter(f => f.ativo_id === ativoId).sort((a, b) => a.ordem - b.ordem);
+  const { data, error } = await sb
+    .from('ativo_fotos').select('*').eq('ativo_id', ativoId).order('ordem', { ascending: true });
+  if (error) _throw('Erro ao buscar fotos', error);
+  return data || [];
 }
 
 async function dbUploadFoto(ativoId, file, ordem) {
-  return new Promise((resolve) => {
-    const fotos = _lsGet('ativo_fotos') || [];
-    if (fotos.filter(f => f.ativo_id === ativoId).length >= 5) {
-      notify('Limite de 5 fotos por ativo', 'error');
-      resolve(null);
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const nova = {
-        id: _uuid(),
-        ativo_id: ativoId,
-        url: e.target.result, // base64
-        ordem,
-        created_at: _now(),
-      };
-      fotos.push(nova);
-      try {
-        _lsSet('ativo_fotos', fotos);
-        resolve(nova);
-      } catch {
-        notify('Foto muito grande para armazenamento local. Use uma imagem menor (max ~1MB).', 'error');
-        resolve(null);
-      }
-    };
-    reader.onerror = () => resolve(null);
-    reader.readAsDataURL(file);
-  });
+  const ext = file.name.split('.').pop();
+  const path = `${ativoId}/${_uuid()}.${ext}`;
+  const { error: upErr } = await sb.storage.from(STORAGE_BUCKET).upload(path, file, { cacheControl: '3600', upsert: false });
+  if (upErr) _throw('Erro no upload da foto', upErr);
+  const { data: { publicUrl } } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+  const { data, error } = await sb.from('ativo_fotos').insert([{ ativo_id: ativoId, url: publicUrl, storage_path: path, ordem }]).select().single();
+  if (error) _throw('Erro ao salvar foto no banco', error);
+  return data;
 }
 
 async function dbDeleteFoto(fotoId) {
-  const fotos = (_lsGet('ativo_fotos') || []).filter(f => f.id !== fotoId);
-  _lsSet('ativo_fotos', fotos);
+  const { data: foto } = await sb.from('ativo_fotos').select('storage_path').eq('id', fotoId).single();
+  if (foto?.storage_path) await sb.storage.from(STORAGE_BUCKET).remove([foto.storage_path]);
+  const { error } = await sb.from('ativo_fotos').delete().eq('id', fotoId);
+  if (error) _throw('Erro ao deletar foto', error);
   return true;
 }
 
 // ─── COLABORADORES ────────────────────────────────────────────
 async function dbGetColabs() {
-  const list = _lsGet('colaboradores') || [];
-  return list.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+  const { data, error } = await sb.from('colaboradores').select('*').order('nome', { ascending: true });
+  if (error) _throw('Erro ao buscar colaboradores', error);
+  return data || [];
 }
 
 async function dbCreateColab(payload) {
-  const list = _lsGet('colaboradores') || [];
-  const novo = { ...payload, id: _uuid(), created_at: _now() };
-  list.push(novo);
-  _lsSet('colaboradores', list);
-  return novo;
+  const { data, error } = await sb.from('colaboradores').insert([payload]).select().single();
+  if (error) _throw('Erro ao criar colaborador', error);
+  return data;
 }
 
 async function dbUpdateColab(id, payload) {
-  const list = _lsGet('colaboradores') || [];
-  const idx  = list.findIndex(c => c.id === id);
-  if (idx === -1) return null;
-  list[idx] = { ...list[idx], ...payload };
-  _lsSet('colaboradores', list);
-  return list[idx];
+  const { data, error } = await sb.from('colaboradores').update(payload).eq('id', id).select().single();
+  if (error) _throw('Erro ao atualizar colaborador', error);
+  return data;
 }
 
 async function dbDeleteColab(id) {
-  const list = (_lsGet('colaboradores') || []).filter(c => c.id !== id);
-  _lsSet('colaboradores', list);
+  const { error } = await sb.from('colaboradores').delete().eq('id', id);
+  if (error) _throw('Erro ao deletar colaborador', error);
   return true;
 }
 
 // ─── HISTÓRICO ────────────────────────────────────────────────
 async function dbGetHistorico() {
-  const list = _lsGet('historico') || [];
-  return list.sort((a, b) => b.created_at?.localeCompare(a.created_at || '') || 0);
+  const { data, error } = await sb.from('historico').select('*').order('created_at', { ascending: false });
+  if (error) _throw('Erro ao buscar histórico', error);
+  return data || [];
 }
 
 async function dbAddHistorico(payload) {
-  const list = _lsGet('historico') || [];
-  list.unshift({ ...payload, id: _uuid(), created_at: _now() });
-  _lsSet('historico', list);
+  const { error } = await sb.from('historico').insert([payload]);
+  if (error) _throw('Erro ao registrar histórico', error);
 }
 
 // ─── KITS ─────────────────────────────────────────────────────
 async function dbGetKitEstoque() {
-  return _lsGet('kit_estoque') || { mochila: 0, squeeze: 0, caderno: 0, caneta: 0, mousepad: 0 };
+  const { data, error } = await sb.from('kit_estoque').select('*');
+  if (error) _throw('Erro ao buscar kit_estoque', error);
+  const obj = {};
+  (data || []).forEach(r => { obj[r.item] = r.quantidade; });
+  return obj;
 }
 
 async function dbUpdateKitItem(item, quantidade) {
-  const kits = await dbGetKitEstoque();
-  kits[item] = quantidade;
-  _lsSet('kit_estoque', kits);
+  const { error } = await sb.from('kit_estoque').update({ quantidade }).eq('item', item);
+  if (error) _throw('Erro ao atualizar kit_estoque', error);
 }
 
 async function dbGetKitHistorico() {
-  const list = _lsGet('kit_historico') || [];
-  return list.sort((a, b) => b.created_at?.localeCompare(a.created_at || '') || 0);
+  const { data, error } = await sb.from('kit_historico').select('*').order('created_at', { ascending: false });
+  if (error) _throw('Erro ao buscar kit_historico', error);
+  return data || [];
 }
 
 async function dbAddKitHistorico(payload) {
-  const list = _lsGet('kit_historico') || [];
-  const novo = { ...payload, id: _uuid(), created_at: _now() };
-  list.unshift(novo);
-  _lsSet('kit_historico', list);
-  return novo;
+  const { data, error } = await sb.from('kit_historico').insert([payload]).select().single();
+  if (error) _throw('Erro ao registrar saída de kit', error);
+  return data;
 }
 
 async function dbUpdateKitHistoricoStatus(id, cancelado) {
-  const list = _lsGet('kit_historico') || [];
-  const idx  = list.findIndex(h => h.id === id);
-  if (idx !== -1) { list[idx].cancelado = cancelado; _lsSet('kit_historico', list); }
+  const { error } = await sb.from('kit_historico').update({ cancelado }).eq('id', id);
+  if (error) _throw('Erro ao atualizar status do kit', error);
 }
 
 // ─── SOLICITAÇÕES ─────────────────────────────────────────────
 async function dbGetSolicitacoes() {
-  const list = _lsGet('solicitacoes') || [];
-  return list.sort((a, b) => b.created_at?.localeCompare(a.created_at || '') || 0);
+  const { data, error } = await sb.from('solicitacoes').select('*').order('created_at', { ascending: false });
+  if (error) _throw('Erro ao buscar solicitações', error);
+  return data || [];
 }
 
 async function dbCreateSolicitacao(payload) {
-  const list = _lsGet('solicitacoes') || [];
-  const nova = { ...payload, id: _uuid(), created_at: _now() };
-  list.unshift(nova);
-  _lsSet('solicitacoes', list);
-  return nova;
+  const { data, error } = await sb.from('solicitacoes').insert([payload]).select().single();
+  if (error) _throw('Erro ao criar solicitação', error);
+  return data;
 }
 
 async function dbUpdateSolStatus(id, status) {
-  const list = _lsGet('solicitacoes') || [];
-  const idx  = list.findIndex(s => s.id === id);
-  if (idx !== -1) { list[idx].status = status; _lsSet('solicitacoes', list); }
+  const { error } = await sb.from('solicitacoes').update({ status }).eq('id', id);
+  if (error) _throw('Erro ao atualizar solicitação', error);
 }
 
 async function dbDeleteSolicitacao(id) {
-  const list = (_lsGet('solicitacoes') || []).filter(s => s.id !== id);
-  _lsSet('solicitacoes', list);
+  const { error } = await sb.from('solicitacoes').delete().eq('id', id);
+  if (error) _throw('Erro ao deletar solicitação', error);
   return true;
 }
 
 // ─── DASHBOARD STATS ──────────────────────────────────────────
 async function dbGetStats() {
-  const ativos = _lsGet('ativos') || [];
+  const { data, error } = await sb.from('ativos').select('status');
+  if (error) _throw('Erro ao buscar stats', error);
+  const ativos = data || [];
   return {
-    total:       ativos.length,
+    total: ativos.length,
     disponiveis: ativos.filter(a => a.status === 'disponivel').length,
-    emUso:       ativos.filter(a => a.status === 'em uso').length,
-    manutencao:  ativos.filter(a => a.status === 'manutencao').length,
+    emUso: ativos.filter(a => a.status === 'em uso').length,
+    manutencao: ativos.filter(a => a.status === 'manutencao').length,
   };
 }
 
 // ─── UTILITÁRIOS ──────────────────────────────────────────────
 async function updatePendBadge() {
-  const list  = _lsGet('solicitacoes') || [];
-  const count = list.filter(s => s.status === 'pendente').length;
-  const el    = document.getElementById('pendBadge');
+  const { count } = await sb
+    .from('solicitacoes')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'pendente');
+  const el = document.getElementById('pendBadge');
   if (el) { el.textContent = count || 0; el.style.display = count ? '' : 'none'; }
 }
 
-// Exportar backup completo
-function exportBackup() {
-  const backup = {
-    exportedAt:   _now(),
-    ativos:       _lsGet('ativos') || [],
-    ativo_fotos:  _lsGet('ativo_fotos') || [],
-    colaboradores:_lsGet('colaboradores') || [],
-    historico:    _lsGet('historico') || [],
-    kit_estoque:  _lsGet('kit_estoque') || {},
-    kit_historico:_lsGet('kit_historico') || [],
-    solicitacoes: _lsGet('solicitacoes') || [],
-  };
-  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `techstock_backup_${new Date().toISOString().split('T')[0]}.json`;
-  a.click();
-  notify('Backup completo exportado!');
+async function exportBackup() {
+  try {
+    const [ativos, colabs, hist, kitEst, kitHist, sols] = await Promise.all([
+      dbGetAtivos(), dbGetColabs(), dbGetHistorico(),
+      dbGetKitEstoque(), dbGetKitHistorico(), dbGetSolicitacoes()
+    ]);
+    const backup = { exportedAt: _now(), ativos, colaboradores: colabs, historico: hist, kit_estoque: kitEst, kit_historico: kitHist, solicitacoes: sols };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `techstock_backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    notify('Backup completo exportado!');
+  } catch (ex) {
+    notify(`Erro no backup: ${ex.message}`, 'error');
+  }
 }
 
-// Importar backup JSON
-function importBackup(file) {
+async function importBackup(file) {
   const reader = new FileReader();
-  reader.onload = e => {
+  reader.onload = async (e) => {
     try {
       const data = JSON.parse(e.target.result);
-      if (data.ativos)        _lsSet('ativos', data.ativos);
-      if (data.ativo_fotos)   _lsSet('ativo_fotos', data.ativo_fotos);
-      if (data.colaboradores) _lsSet('colaboradores', data.colaboradores);
-      if (data.historico)     _lsSet('historico', data.historico);
-      if (data.kit_estoque)   _lsSet('kit_estoque', data.kit_estoque);
-      if (data.kit_historico) _lsSet('kit_historico', data.kit_historico);
-      if (data.solicitacoes)  _lsSet('solicitacoes', data.solicitacoes);
-      notify(`Backup restaurado com sucesso! ${data.ativos?.length || 0} ativos importados.`);
+      notify('Restaurando backup... aguarde.', 'success');
+      if (data.ativos?.length) await sb.from('ativos').upsert(data.ativos, { onConflict: 'id' });
+      if (data.colaboradores?.length) await sb.from('colaboradores').upsert(data.colaboradores, { onConflict: 'id' });
+      if (data.historico?.length) await sb.from('historico').upsert(data.historico, { onConflict: 'id' });
+      if (data.kit_historico?.length) await sb.from('kit_historico').upsert(data.kit_historico, { onConflict: 'id' });
+      if (data.solicitacoes?.length) await sb.from('solicitacoes').upsert(data.solicitacoes, { onConflict: 'id' });
+      if (data.kit_estoque) {
+        for (const [item, quantidade] of Object.entries(data.kit_estoque)) {
+          await dbUpdateKitItem(item, quantidade);
+        }
+      }
+      notify(`Backup restaurado! ${data.ativos?.length || 0} ativos importados.`);
       setTimeout(() => location.reload(), 1500);
-    } catch {
-      notify('Arquivo de backup inválido', 'error');
+    } catch (ex) {
+      notify(`Arquivo inválido: ${ex.message}`, 'error');
     }
   };
   reader.readAsText(file);
