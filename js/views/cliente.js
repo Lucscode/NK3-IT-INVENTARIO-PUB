@@ -10,24 +10,48 @@ async function renderClientTab(tab) {
 
   if (tab === 'solicitar') {
     c.innerHTML = `
-      <div class="card" style="max-width:600px;">
-        <h3 style="margin-bottom:20px;font-size:16px;"><i class="bi bi-clipboard-plus"></i> Nova Solicitação de Máquina</h3>
-        <div class="form-grid">
-          <div class="form-group"><label>Nome Completo *</label><input type="text" id="solNome" placeholder="Nome do colaborador"></div>
-          <div class="form-group"><label>Departamento *</label><input type="text" id="solDept" placeholder="Departamento"></div>
-          <div class="form-group"><label>Email *</label><input type="email" id="solEmail" placeholder="email@empresa.com"></div>
-          <div class="form-group"><label>Telefone</label><input type="text" id="solTel" placeholder="(11) 99999-9999"></div>
-          <div class="form-group span2"><label>Endereço de Entrega</label><input type="text" id="solEnd" placeholder="Rua, número, cidade"></div>
-          <div class="form-group"><label>Data de Início</label><input type="date" id="solInicio"></div>
-          <div class="form-group" style="align-self:center;">
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:20px;">
-              <input type="checkbox" id="solKit" style="width:auto;accent-color:var(--accent)"> Incluir Kit Boas-Vindas
-            </label>
-          </div>
-          <div class="form-group span2"><label>Observações</label><textarea id="solObs" placeholder="Informações adicionais..."></textarea></div>
+      <div class="card" style="max-width:700px; padding: 32px;">
+        <!-- DADOS DO COLABORADOR -->
+        <h3 style="font-size:16px; margin-bottom:4px; color:var(--text);">Dados do Colaborador</h3>
+        <p style="font-size:13px; color:var(--text2); margin-bottom:24px;">Preencha as informações do novo colaborador que receberá o equipamento.</p>
+        
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group span2"><label>Nome completo *</label><input type="text" id="solNome" placeholder="Nome do colaborador"></div>
+          <div class="form-group"><label>CPF *</label><input type="text" id="solCpf" placeholder="000.000.000-00"></div>
+          <div class="form-group"><label>E-mail *</label><input type="email" id="solEmail" placeholder="colaborador@empresa.com"></div>
+          <div class="form-group"><label>Data de início *</label><input type="date" id="solInicio"></div>
         </div>
-        <div style="margin-top:20px;">
-          <button class="btn btn-primary" onclick="enviarSolicitacao()"><i class="bi bi-send"></i> Enviar Solicitação</button>
+
+        <hr style="border: none; border-top: 1px solid var(--border); margin: 32px 0;">
+
+        <!-- ENDEREÇO DE ENTREGA -->
+        <h3 style="font-size:16px; margin-bottom:24px; color:var(--text);">Endereço de Entrega</h3>
+        
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group"><label>CEP *</label><input type="text" id="solCep" placeholder="00000-000"></div>
+          <div class="form-group"><label>Bairro *</label><input type="text" id="solBairro" placeholder="Bairro"></div>
+          <div class="form-group span2"><label>Rua *</label><input type="text" id="solRua" placeholder="Rua / Avenida"></div>
+          <div class="form-group"><label>Número *</label><input type="text" id="solNumero" placeholder="123"></div>
+          <div class="form-group"><label>Complemento</label><input type="text" id="solComplemento" placeholder="Apto, bloco, etc."></div>
+        </div>
+
+        <div style="margin-top: 32px; display: flex; align-items: flex-start; gap: 12px;">
+          <input type="checkbox" id="solKit" style="width: 18px; height: 18px; accent-color: var(--accent); margin-top: 2px; cursor: pointer;">
+          <div>
+            <label for="solKit" style="font-weight: 600; color: var(--text); cursor: pointer; display: block; margin-bottom: 2px;">Incluir kit boas-vindas</label>
+            <span style="font-size: 13px; color: var(--text2);">Mochila, squeeze, lapiseira, caderno e mousepad</span>
+          </div>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid var(--border); margin: 32px 0;">
+
+        <div class="form-group">
+          <label>Observações</label>
+          <textarea id="solObs" placeholder="Alguma informação adicional sobre o pedido?" style="height: 100px; resize: vertical;"></textarea>
+        </div>
+
+        <div style="margin-top:24px;">
+          <button class="btn btn-primary" onclick="enviarSolicitacao()" style="width: 100%; justify-content: center; padding: 12px; font-size: 14px; border-radius: 8px;">Enviar Solicitação</button>
         </div>
       </div>`;
 
@@ -77,18 +101,33 @@ async function renderClientTab(tab) {
 
 async function enviarSolicitacao() {
   const nome  = document.getElementById('solNome').value.trim();
-  const dept  = document.getElementById('solDept').value.trim();
+  const cpf   = document.getElementById('solCpf').value.trim();
   const email = document.getElementById('solEmail').value.trim();
-  if (!nome || !dept || !email) { notify('Preencha os campos obrigatórios', 'error'); return; }
+  const inicio = document.getElementById('solInicio').value;
+  const cep = document.getElementById('solCep').value.trim();
+  const bairro = document.getElementById('solBairro').value.trim();
+  const rua = document.getElementById('solRua').value.trim();
+  const numero = document.getElementById('solNumero').value.trim();
+  
+  if (!nome || !cpf || !email || !inicio || !cep || !bairro || !rua || !numero) { 
+    notify('Preencha os campos obrigatórios (*)', 'error'); return; 
+  }
+
   await dbCreateSolicitacao({
-    colab: nome, dept, email,
-    tel:     document.getElementById('solTel').value,
-    inicio:  document.getElementById('solInicio').value || null,
-    kit:     document.getElementById('solKit').checked,
-    obs:     document.getElementById('solObs').value,
-    status:  'pendente',
-    endereco:document.getElementById('solEnd').value,
+    colaborador: nome,
+    cpf,
+    email,
+    inicio: inicio || null,
+    cep,
+    bairro,
+    rua,
+    numero,
+    complemento: document.getElementById('solComplemento').value.trim(),
+    kit: document.getElementById('solKit').checked,
+    obs: document.getElementById('solObs').value.trim(),
+    status: 'pendente'
   });
+  
   await updatePendBadge();
   notify('Solicitação enviada com sucesso!');
   renderClientTab('solicitar');

@@ -4,8 +4,8 @@ async function renderSolicitacoes() {
   _cacheSolicitacoes = list;
   const statusOpts = ['pendente','em andamento','enviado','cancelado'];
   document.getElementById('solTableBody').innerHTML = list.map(s=>`<tr>
-    <td><b>${s.colab||'—'}</b><br><span style="font-size:11px;color:var(--text2);">${s.email||''}</span></td>
-    <td>${s.dept||'—'}</td>
+    <td><b>${s.colaborador||s.colab||'—'}</b><br><span style="font-size:11px;color:var(--text2);">${s.email||''}</span></td>
+    <td>${s.cpf||'—'}</td>
     <td>${fmtDate(s.inicio)}</td>
     <td>${s.kit ? '<span class="badge badge-green">Sim</span>' : '<span class="badge badge-gray">Não</span>'}</td>
     <td>
@@ -31,7 +31,23 @@ async function updateSolStatus(id, status) {
 function openSolDetalhe(id) {
   const s = _cacheSolicitacoes.find(x => x.id === id);
   if (!s) return;
-  alert(`Solicitação #${s.id}\n\nColaborador: ${s.colab}\nDepartamento: ${s.dept}\nEmail: ${s.email}\nTelefone: ${s.tel||'—'}\nEndereço: ${s.endereco||'—'}\nInício: ${fmtDate(s.inicio)}\nKit: ${s.kit?'Sim':'Não'}\nObs: ${s.obs||'—'}`);
+  alert(`Solicitação #${s.id.split('-')[0]}
+
+[ COLABORADOR ]
+Nome: ${s.colaborador || s.colab || '—'}
+CPF: ${s.cpf || '—'}
+E-mail: ${s.email || '—'}
+Início: ${fmtDate(s.inicio)}
+
+[ ENDEREÇO DE ENTREGA ]
+CEP: ${s.cep || '—'}
+Rua: ${s.rua || '—'}, Nº ${s.numero || '—'}
+Bairro: ${s.bairro || '—'}
+Complemento: ${s.complemento || '—'}
+
+[ PEDIDO ]
+Kit Boas-Vindas: ${s.kit ? 'Sim' : 'Não'}
+Observações: ${s.obs || '—'}`);
 }
 
 async function deleteSol(id) {

@@ -58,8 +58,9 @@ async function confirmImport() {
 
   try {
     if (csvImportType === 'ativos') {
-      const existentes = _lsGet('ativos') || [];
-      const patrimoniosExistentes = new Set(existentes.map(a => a.patrimonio));
+      const existentes = await dbGetAtivos();
+      const patrimoniosExistentes = {};
+      existentes.forEach(a => patrimoniosExistentes[a.patrimonio] = a.id);
       let importados = 0, atualizados = 0;
 
       // estado_saude: 1=Verde/bom, 2=Amarelo/regular, 3=Vermelho/ruim
@@ -72,17 +73,15 @@ async function confirmImport() {
       }
 
       // Normaliza status para o padrão do sistema
-      // Suporta formatos como "Em Uso - Notebook", "em_uso", "Disponível", etc.
       function parseStatus(val) {
-        // Remove tudo após o primeiro traço (ex: "Em Uso - Notebook" → "Em Uso")
         const raw = String(val || '').split('-')[0];
         const v = raw.trim().toLowerCase().replace(/_/g, ' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        // ^ normaliza acentos: "disponível" → "disponivel", "manutenção" → "manutencao"
         if (v.includes('disponiv') || v === 'livre')     return 'disponivel';
         if (v.includes('em uso')   || v === 'uso')       return 'em uso';
         if (v.includes('manutenc'))                      return 'manutencao';
         if (v.includes('estoque'))                       return 'estoque';
         if (v.includes('descart') || v.includes('inutiliz') || v.includes('extravi')) return 'descartado';
+        if (v.includes('tatical') || v.includes('tactical')) return 'disponivel'; // Ignora "Sem Tatical"
         return 'disponivel'; // fallback seguro
       }
 
@@ -105,23 +104,34 @@ async function confirmImport() {
           saude:       parseSaude(r.estado_saude || r.saude || r['saúde']),
           colab:       r.colaborador_nome || r.colab || r.colaborador || '',
           localizacao: r.localizacao      || r['localização'] || '',
-          garantia:    (() => { const g = r.garantia_ate || r.garantia || ''; return g.length >= 8 ? g : null; })(),
-          obs:         [r.observacoes || r.obs || r['observações'] || '', r.condicao || ''].filter(Boolean).join(' | ') || '',
+          garantia:    (() => { 
+            let g = r.garantia_ate || r.garantia || '';
+            if (g.includes('/')) {
+              const p = g.split('/');
+              if (p.length === 3) g = `${p[2]}-${p[1]}-${p[0]}`;
+            }
+            return /^\d{4}-\d{2}-\d{2}(T.*)?$/.test(g) ? g.split('T')[0] : null; 
+          })(),
+          obs:         [
+            r.observacoes || r.obs || r['observações'] || '', 
+            r.condicao || '',
+            (() => {
+              let g = r.garantia_ate || r.garantia || '';
+              return g && !/^\d{4}-\d{2}-\d{2}(T.*)?$/.test(g) && !g.includes('/') ? `Garantia CSV: ${g}` : '';
+            })()
+          ].filter(Boolean).join(' | ') || '',
           emoji:       '💻',
         };
 
-        if (patrimoniosExistentes.has(patrimonio)) {
-          const idx = existentes.findIndex(a => a.patrimonio === patrimonio);
-          existentes[idx] = { ...existentes[idx], ...payload };
+        if (patrimoniosExistentes[patrimonio]) {
+          await dbUpdateAtivo(patrimoniosExistentes[patrimonio], payload);
           atualizados++;
         } else {
-          existentes.unshift({ ...payload, id: _uuid(), created_at: _now() });
-          patrimoniosExistentes.add(patrimonio);
+          await dbCreateAtivo(payload);
           importados++;
         }
       }
 
-      _lsSet('ativos', existentes);
       const msg = [];
       if (importados > 0) msg.push(`${importados} criados`);
       if (atualizados > 0) msg.push(`${atualizados} atualizados`);

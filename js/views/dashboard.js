@@ -47,8 +47,8 @@ async function renderDashboard() {
   const atividadeEl = document.getElementById('dashActivity');
   if (atividadeEl) {
     atividadeEl.innerHTML = hist.slice(0, 8).map(h => {
-      const tipo  = h.devolvido ? 'Devolução' : h.atribuido ? 'Atribuição' : 'Cadastro';
-      const cor   = tipo === 'Devolução' ? '#10b981' : tipo === 'Atribuição' ? '#3b82f6' : '#6366f1';
+      const tipo  = h.obs?.includes('Exclusão') ? 'Exclusão' : h.devolvido ? 'Devolução' : h.atribuido ? 'Atribuição' : 'Cadastro';
+      const cor   = tipo === 'Exclusão' ? '#ef4444' : tipo === 'Devolução' ? '#10b981' : tipo === 'Atribuição' ? '#3b82f6' : '#6366f1';
       const initials = (h.colab || 'S')
         .split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
       return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">

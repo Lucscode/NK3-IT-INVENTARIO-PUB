@@ -86,6 +86,7 @@ CREATE TABLE ativos (
   localizacao TEXT DEFAULT '',
   garantia    DATE,
   obs         TEXT DEFAULT '',
+  anexo       TEXT DEFAULT '',
   emoji       TEXT DEFAULT '💻',
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -155,6 +156,15 @@ CREATE TABLE solicitacoes (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tipo        TEXT NOT NULL DEFAULT 'maquina',
   colaborador TEXT NOT NULL DEFAULT '',
+  cpf         TEXT DEFAULT '',
+  email       TEXT DEFAULT '',
+  inicio      DATE,
+  cep         TEXT DEFAULT '',
+  bairro      TEXT DEFAULT '',
+  rua         TEXT DEFAULT '',
+  numero      TEXT DEFAULT '',
+  complemento TEXT DEFAULT '',
+  kit         BOOLEAN DEFAULT FALSE,
   cargo       TEXT DEFAULT '',
   dept        TEXT DEFAULT '',
   specs       TEXT DEFAULT '',
