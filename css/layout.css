@@ -20,12 +20,18 @@
   border-bottom: 1px solid rgba(255,255,255,.06);
 }
 .logo-mark {
-  width: 32px; height: 32px;
-  background: var(--sidebar-active);
+  width: 48px; height: 48px;
+  background: transparent;
   border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--mono); font-size: 13px; font-weight: 700;
   color: #fff; flex-shrink: 0;
+  overflow: hidden;
+}
+.logo-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .logo-text { font-family: var(--mono); font-size: 13px; font-weight: 700; color: #fff; letter-spacing: .04em; }
 .logo-sub  { font-size: 10px; color: var(--sidebar-text2); letter-spacing: .06em; }
