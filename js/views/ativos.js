@@ -30,7 +30,13 @@ async function renderAtivos() {
   if (search) list = list.filter(a =>
     (a.nome || '').toLowerCase().includes(search) ||
     (a.patrimonio || '').toLowerCase().includes(search) ||
-    (a.colab || '').toLowerCase().includes(search)
+    (a.colab || '').toLowerCase().includes(search) ||
+    (a.marca || '').toLowerCase().includes(search) ||
+    (a.modelo || '').toLowerCase().includes(search) ||
+    (a.serie || '').toLowerCase().includes(search) ||
+    (a.localizacao || '').toLowerCase().includes(search) ||
+    (a.proc || '').toLowerCase().includes(search) ||
+    (a.so || '').toLowerCase().includes(search)
   );
 
   if (currentView === 'grid') {
@@ -89,6 +95,8 @@ function openCreateModal() {
   const page = document.querySelector('.page.active').id.replace('page-', '');
   if (page === 'ativos') openNovoAtivo();
   else if (page === 'colaboradores') openNovoColab();
+  else if (page === 'monitores') openNovoMonitor();
+  else if (page === 'celulares') openNovoCelular();
 }
 
 async function openNovoAtivo(id = null) {
@@ -212,8 +220,19 @@ async function saveAtivo() {
   };
 
   if (editingAtivoId) {
+    const old = await dbGetAtivoById(editingAtivoId);
     const updated = await dbUpdateAtivo(editingAtivoId, payload);
-    if (updated) notify('Ativo atualizado!');
+    if (updated) {
+      notify('Ativo atualizado!');
+      if (old && old.obs !== payload.obs) {
+        await dbAddHistorico({
+          ativo_id: editingAtivoId,
+          ativo_nome: `${updated.nome} (${updated.patrimonio})`,
+          colab: payload.colab || 'Sistema',
+          obs: `Anotação alterada: ${payload.obs || '(removida)'}`
+        });
+      }
+    }
   } else {
     const created = await dbCreateAtivo(payload);
     if (created) {

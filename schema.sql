@@ -78,7 +78,7 @@ CREATE TABLE ativos (
   disco       TEXT DEFAULT '',
   so          TEXT DEFAULT '',
   status      TEXT NOT NULL DEFAULT 'disponivel'
-                CHECK (status IN ('disponivel','em uso','manutencao','estoque','descartado')),
+                CHECK (status IN ('disponivel','em uso','manutencao','estoque','descartado','quebrado')),
   saude       TEXT NOT NULL DEFAULT 'bom'
                 CHECK (saude IN ('bom','regular','ruim')),
   colab       TEXT DEFAULT '',           -- nome do colaborador (desnormalizado para velocidade)
@@ -86,6 +86,10 @@ CREATE TABLE ativos (
   localizacao TEXT DEFAULT '',
   garantia    DATE,
   obs         TEXT DEFAULT '',
+  tela        TEXT DEFAULT '',
+  numero_linha TEXT DEFAULT '',
+  imei1       TEXT DEFAULT '',
+  imei2       TEXT DEFAULT '',
   anexo       TEXT DEFAULT '',
   emoji       TEXT DEFAULT '💻',
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()

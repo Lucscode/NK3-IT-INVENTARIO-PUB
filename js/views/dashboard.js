@@ -12,8 +12,24 @@ async function renderDashboard() {
   if (sub) sub.textContent = `${stats.total ?? 0} equipamentos cadastrados no sistema`;
 
   // Ativos recentes — grid de cards com foto (6 últimos)
-  const ativos = await dbGetAtivos();
+  let ativos = await dbGetAtivos();
   _cacheAtivos = ativos;
+  
+  const tipoFilter = document.getElementById('dashFilterTipo')?.value || '';
+  const statusFilter = document.getElementById('dashFilterStatus')?.value || '';
+  const search = document.getElementById('globalSearch')?.value.toLowerCase() || '';
+
+  if (tipoFilter) ativos = ativos.filter(a => a.tipo === tipoFilter);
+  if (statusFilter) ativos = ativos.filter(a => a.status === statusFilter);
+  if (search) ativos = ativos.filter(a => 
+    (a.nome || '').toLowerCase().includes(search) ||
+    (a.patrimonio || '').toLowerCase().includes(search) ||
+    (a.colab || '').toLowerCase().includes(search) ||
+    (a.marca || '').toLowerCase().includes(search) ||
+    (a.modelo || '').toLowerCase().includes(search) ||
+    (a.serie || '').toLowerCase().includes(search)
+  );
+
   const recentes = ativos.slice(0, 6);
   const fotosMap  = {};
   await Promise.all(recentes.map(async a => { fotosMap[a.id] = await dbGetFotos(a.id); }));
@@ -47,8 +63,12 @@ async function renderDashboard() {
   const atividadeEl = document.getElementById('dashActivity');
   if (atividadeEl) {
     atividadeEl.innerHTML = hist.slice(0, 8).map(h => {
-      const tipo  = h.obs?.includes('Exclusão') ? 'Exclusão' : h.devolvido ? 'Devolução' : h.atribuido ? 'Atribuição' : 'Cadastro';
-      const cor   = tipo === 'Exclusão' ? '#ef4444' : tipo === 'Devolução' ? '#10b981' : tipo === 'Atribuição' ? '#3b82f6' : '#6366f1';
+      let tipo, cor;
+      if (h.obs?.startsWith('Exclusão')) { tipo = 'Exclusão'; cor = '#ef4444'; }
+      else if (h.obs?.startsWith('Anotação alterada')) { tipo = 'Anotação'; cor = '#8b5cf6'; }
+      else if (h.devolvido) { tipo = 'Devolução'; cor = '#10b981'; }
+      else if (h.atribuido) { tipo = 'Atribuição'; cor = '#3b82f6'; }
+      else { tipo = 'Cadastro'; cor = '#6366f1'; }
       const initials = (h.colab || 'S')
         .split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
       return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">

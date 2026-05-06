@@ -9,8 +9,8 @@ function notify(msg, type = 'success') {
 }
 function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('pt-BR'); }
 function statusBadge(s) {
-  const map = { 'disponivel': 'badge-green', 'em uso': 'badge-blue', 'manutencao': 'badge-yellow', 'estoque': 'badge-gray', 'descartado': 'badge-red', 'ativo': 'badge-green', 'inativo': 'badge-gray', 'pendente': 'badge-orange', 'em andamento': 'badge-blue', 'enviado': 'badge-green', 'cancelado': 'badge-red' };
-  const labels = { 'disponivel': 'Disponível', 'em uso': 'Em Uso', 'manutencao': 'Manutenção', 'estoque': 'Estoque', 'descartado': 'Descartado', 'ativo': 'Ativo', 'inativo': 'Inativo', 'pendente': 'Pendente', 'em andamento': 'Em Andamento', 'enviado': 'Enviado', 'cancelado': 'Cancelado' };
+  const map = { 'disponivel': 'badge-green', 'em uso': 'badge-blue', 'manutencao': 'badge-yellow', 'estoque': 'badge-gray', 'descartado': 'badge-red', 'quebrado': 'badge-red', 'ativo': 'badge-green', 'inativo': 'badge-gray', 'pendente': 'badge-orange', 'em andamento': 'badge-blue', 'enviado': 'badge-green', 'cancelado': 'badge-red' };
+  const labels = { 'disponivel': 'Disponível', 'em uso': 'Em Uso', 'manutencao': 'Manutenção', 'estoque': 'Estoque', 'descartado': 'Descartado', 'quebrado': 'Quebrado', 'ativo': 'Ativo', 'inativo': 'Inativo', 'pendente': 'Pendente', 'em andamento': 'Em Andamento', 'enviado': 'Enviado', 'cancelado': 'Cancelado' };
   return `<span class="badge ${map[s] || 'badge-gray'}"><span class="dot"></span>${labels[s] || s}</span>`;
 }
 function saudeBadge(s) {
@@ -37,6 +37,9 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 // ===================== GLOBAL SEARCH =====================
 function handleSearch(val) {
   const page = document.querySelector('.page.active').id.replace('page-', '');
+  if (page === 'dashboard') renderDashboard();
   if (page === 'ativos') renderAtivos();
+  if (page === 'monitores') renderMonitores();
+  if (page === 'celulares') renderCelulares();
   if (page === 'colaboradores') renderColabs();
 }

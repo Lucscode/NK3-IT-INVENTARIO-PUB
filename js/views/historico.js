@@ -21,16 +21,30 @@ async function renderHistorico() {
   }
 
   document.getElementById('histTableBody').innerHTML = list.map(h => {
-    const tipo    = h.devolvido ? 'Devolução' : h.atribuido ? 'Atribuição' : 'Cadastro';
-    const corMap  = { 'Devolução':'#10b981','Atribuição':'#3b82f6','Cadastro':'#6366f1','Manutenção':'#f59e0b' };
-    const cor     = corMap[tipo] || '#6366f1';
+    // Detect event type from obs field or dates
+    let tipo, cor;
+    if (h.obs && h.obs.startsWith('Exclusão')) {
+      tipo = 'Exclusão'; cor = '#ef4444';
+    } else if (h.obs && h.obs.startsWith('Anotação alterada')) {
+      tipo = 'Anotação'; cor = '#8b5cf6';
+    } else if (h.devolvido) {
+      tipo = 'Devolução'; cor = '#10b981';
+    } else if (h.atribuido) {
+      tipo = 'Atribuição'; cor = '#3b82f6';
+    } else {
+      tipo = 'Cadastro'; cor = '#6366f1';
+    }
+
     const initials= (h.colab||'S').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     const patri   = extractPatri(h.ativo_nome);
     const nomeBase= (h.ativo_nome||'').replace(/\s*\([^)]*\)/,'').trim();
+    // For annotation changes show the new text as a note
+    const obsExtra = (h.obs && (h.obs.startsWith('Anotação alterada') || h.obs.startsWith('Exclusão')))
+      ? `<div style="font-size:11px;color:var(--text3);margin-top:3px;font-style:italic;">${h.obs}</div>` : '';
 
     return `<tr style="border-bottom:1px solid var(--border);">
       <td style="padding:12px 16px;">
-        <div style="width:36px;height:36px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text2);">
+        <div style="width:36px;height:36px;border-radius:50%;background:${cor}1a;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:${cor};">
           ${initials}
         </div>
       </td>
@@ -41,6 +55,7 @@ async function renderHistorico() {
         </div>
         <div style="font-size:13px;font-weight:600;color:var(--text);">${nomeBase||'—'}</div>
         ${h.colab ? `<div style="font-size:11px;color:var(--text2);margin-top:2px;">Colaborador: <span style="color:var(--accent)">${h.colab}</span></div>` : ''}
+        ${obsExtra}
       </td>
       <td style="padding:12px 16px;text-align:right;white-space:nowrap;">
         <span style="font-size:11px;color:var(--text2);">${fmtDate(h.atribuido||h.created_at)}</span>

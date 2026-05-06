@@ -20,6 +20,8 @@ function goTo(page) {
     historico: 'Histórico de Uso',
     kits: 'Kits Boas-Vindas',
     solicitacoes: 'Solicitações',
+    monitores: 'Monitores',
+    celulares: 'Celulares',
     'area-cliente': 'Área do Cliente'
   };
   const subs = {
@@ -29,6 +31,8 @@ function goTo(page) {
     historico: 'Registro completo de movimentações',
     kits: 'Controle de kits de boas-vindas',
     solicitacoes: 'Pedidos de máquinas e onboarding',
+    monitores: 'Gerencie monitores e telas',
+    celulares: 'Controle de aparelhos e linhas corporativas',
     'area-cliente': 'Portal do colaborador'
   };
 
@@ -36,16 +40,21 @@ function goTo(page) {
   const subEl = document.getElementById('pageSub');
   if(subEl) subEl.textContent = subs[page] || '';
 
-  const addBtns = { ativos: true, colaboradores: true };
+  const addBtns = { ativos: true, colaboradores: true, monitores: true, celulares: true };
   const addBtn = document.getElementById('topbarAdd');
   if(addBtn) {
     addBtn.style.display = addBtns[page] ? 'flex' : 'none';
-    const label = page === 'colaboradores' ? 'Novo Colaborador' : 'Novo Ativo';
+    let label = 'Novo Ativo';
+    if(page === 'colaboradores') label = 'Novo Colaborador';
+    if(page === 'monitores') label = 'Novo Monitor';
+    if(page === 'celulares') label = 'Novo Celular';
     addBtn.innerHTML = `+ <span class="hide-mobile">${label}</span>`;
   }
 
   if(page === 'dashboard') renderDashboard();
   if(page === 'ativos') renderAtivos();
+  if(page === 'monitores') renderMonitores();
+  if(page === 'celulares') renderCelulares();
   if(page === 'colaboradores') renderColabs();
   if(page === 'historico') renderHistorico();
   if(page === 'kits') { currentKitTab='estoque'; renderKitTab('estoque'); }

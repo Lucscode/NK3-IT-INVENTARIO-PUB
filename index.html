@@ -71,6 +71,12 @@
         <div class="nav-item" onclick="goTo('ativos')">
           <span class="nav-icon"><i class="bi bi-laptop"></i></span> Ativos
         </div>
+        <div class="nav-item" onclick="goTo('monitores')">
+          <span class="nav-icon"><i class="bi bi-display"></i></span> Monitores
+        </div>
+        <div class="nav-item" onclick="goTo('celulares')">
+          <span class="nav-icon"><i class="bi bi-phone"></i></span> Celulares
+        </div>
         <div class="nav-item" onclick="goTo('colaboradores')">
           <span class="nav-icon"><i class="bi bi-people"></i></span> Colaboradores
         </div>
@@ -170,7 +176,23 @@
           <div class="card" style="margin-bottom:16px;">
             <div class="section-header">
               <div class="section-title">Ativos Recentes</div>
-              <button class="btn btn-ghost btn-sm" onclick="goTo('ativos')">Ver todos →</button>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <select id="dashFilterTipo" class="hide-mobile" style="padding: 4px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg2); color: var(--text);" onchange="renderDashboard()">
+                  <option value="">Todos os Tipos</option>
+                  <option value="Notebook">Notebook</option>
+                  <option value="Desktop">Desktop</option>
+                  <option value="Monitor">Monitor</option>
+                  <option value="Celular">Celular</option>
+                </select>
+                <select id="dashFilterStatus" class="hide-mobile" style="padding: 4px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg2); color: var(--text);" onchange="renderDashboard()">
+                  <option value="">Qualquer Status</option>
+                  <option value="disponivel">Disponível</option>
+                  <option value="em uso">Em Uso</option>
+                  <option value="manutencao">Manutenção</option>
+                  <option value="estoque">Estoque</option>
+                </select>
+                <button class="btn btn-ghost btn-sm" onclick="goTo('ativos')">Ver todos →</button>
+              </div>
             </div>
             <div id="dashRecentAssets"></div>
           </div>
@@ -217,6 +239,42 @@
             </div>
           </div>
           <div id="ativosContainer"></div>
+        </div>
+
+        <!-- MONITORES -->
+        <div class="page" id="page-monitores">
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <div class="filters" id="monitorFilters">
+                <button class="filter-btn active" onclick="filterMonitores('todos',this)">Todos</button>
+                <button class="filter-btn" onclick="filterMonitores('em uso',this)">Em Uso</button>
+                <button class="filter-btn" onclick="filterMonitores('estoque',this)">Estoque</button>
+                <button class="filter-btn" onclick="filterMonitores('quebrado',this)">Quebrado</button>
+              </div>
+            </div>
+            <div class="toolbar-right">
+              <button class="btn btn-primary btn-sm" onclick="openNovoMonitor()"><i class="bi bi-plus-lg"></i> Novo Monitor</button>
+            </div>
+          </div>
+          <div id="monitoresContainer"></div>
+        </div>
+
+        <!-- CELULARES -->
+        <div class="page" id="page-celulares">
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <div class="filters" id="celularFilters">
+                <button class="filter-btn active" onclick="filterCelulares('todos',this)">Todos</button>
+                <button class="filter-btn" onclick="filterCelulares('disponivel',this)">Disponível</button>
+                <button class="filter-btn" onclick="filterCelulares('em uso',this)">Em Uso</button>
+                <button class="filter-btn" onclick="filterCelulares('manutencao',this)">Manutenção</button>
+              </div>
+            </div>
+            <div class="toolbar-right">
+              <button class="btn btn-primary btn-sm" onclick="openNovoCelular()"><i class="bi bi-plus-lg"></i> Novo Celular</button>
+            </div>
+          </div>
+          <div id="celularesContainer"></div>
         </div>
 
         <!-- COLABORADORES -->
@@ -622,6 +680,153 @@
     </div>
   </div>
 
+  <!-- MODAL: NOVO MONITOR -->
+  <div class="modal-overlay" id="modalNovoMonitor">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modalMonitorTitle">Novo Monitor</div>
+        <button class="modal-close" onclick="closeModal('modalNovoMonitor')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group span2">
+            <label>Nome / Modelo *</label>
+            <input type="text" id="monNome" placeholder="Ex: Monitor Dell 24">
+          </div>
+          <div class="form-group">
+            <label>Patrimônio *</label>
+            <input type="text" id="monPatrimonio" placeholder="MON-001">
+          </div>
+          <div class="form-group">
+            <label>Marca</label>
+            <input type="text" id="monMarca" placeholder="Dell, LG, Samsung...">
+          </div>
+          <div class="form-group">
+            <label>Modelo</label>
+            <input type="text" id="monModelo" placeholder="P2419H">
+          </div>
+          <div class="form-group">
+            <label>Número de Série</label>
+            <input type="text" id="monSerie" placeholder="SN123456">
+          </div>
+          <div class="form-group">
+            <label>Tamanho da Tela</label>
+            <input type="text" id="monTela" placeholder="24 polegadas">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="monStatus">
+              <option value="em uso">Em Uso</option>
+              <option value="estoque">Estoque</option>
+              <option value="quebrado">Quebrado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Colaborador</label>
+            <input type="text" id="monColab" placeholder="Atribuir a..." list="colabListMon">
+            <datalist id="colabListMon"></datalist>
+          </div>
+          <div class="form-group">
+            <label>Localização</label>
+            <input type="text" id="monLocalizacao" placeholder="Mesa 12, Sala TI...">
+          </div>
+          <div class="form-group span2">
+            <label>Observações</label>
+            <textarea id="monObs" placeholder="Alguma anotação..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalNovoMonitor')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveMonitor()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NOVO CELULAR -->
+  <div class="modal-overlay" id="modalNovoCelular">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modalCelularTitle">Novo Celular</div>
+        <button class="modal-close" onclick="closeModal('modalNovoCelular')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group span2">
+            <label>Nome do Celular *</label>
+            <input type="text" id="celNome" placeholder="Ex: iPhone 13">
+          </div>
+          <div class="form-group">
+            <label>Patrimônio *</label>
+            <input type="text" id="celPatrimonio" placeholder="CEL-001">
+          </div>
+          <div class="form-group">
+            <label>Marca</label>
+            <input type="text" id="celMarca" placeholder="Apple, Samsung, Motorola...">
+          </div>
+          <div class="form-group">
+            <label>Modelo</label>
+            <input type="text" id="celModelo" placeholder="iPhone 13, Galaxy S22...">
+          </div>
+          <div class="form-group">
+            <label>Número de Série</label>
+            <input type="text" id="celSerie" placeholder="SN123456">
+          </div>
+          <div class="form-group">
+            <label>Processador</label>
+            <input type="text" id="celProc" placeholder="A15 Bionic">
+          </div>
+          <div class="form-group">
+            <label>Armazenamento</label>
+            <input type="text" id="celDisco" placeholder="128GB">
+          </div>
+          <div class="form-group">
+            <label>Memória RAM</label>
+            <input type="text" id="celRam" placeholder="4GB">
+          </div>
+          <div class="form-group">
+            <label>Número do Celular</label>
+            <input type="text" id="celNumeroLinha" placeholder="(11) 99999-9999">
+          </div>
+          <div class="form-group">
+            <label>IMEI CHIP 1</label>
+            <input type="text" id="celImei1" placeholder="123456789012345">
+          </div>
+          <div class="form-group">
+            <label>IMEI CHIP 2</label>
+            <input type="text" id="celImei2" placeholder="123456789012345">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="celStatus">
+              <option value="disponivel">Disponível</option>
+              <option value="em uso">Em Uso</option>
+              <option value="manutencao">Manutenção</option>
+              <option value="quebrado">Quebrado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Colaborador</label>
+            <input type="text" id="celColab" placeholder="Atribuir a..." list="colabListCel">
+            <datalist id="colabListCel"></datalist>
+          </div>
+          <div class="form-group">
+            <label>Localização</label>
+            <input type="text" id="celLocalizacao" placeholder="Base BH...">
+          </div>
+          <div class="form-group span2">
+            <label>Observações</label>
+            <textarea id="celObs" placeholder="Avarias, carregador, capinha..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalNovoCelular')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveCelular()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Core -->
   <script src="js/supabase.js"></script>
   <script src="js/data.js"></script>
@@ -633,6 +838,8 @@
   <!-- Views -->
   <script src="js/views/dashboard.js"></script>
   <script src="js/views/ativos.js"></script>
+  <script src="js/views/monitores.js"></script>
+  <script src="js/views/celulares.js"></script>
   <script src="js/views/colaboradores.js"></script>
   <script src="js/views/historico.js"></script>
   <script src="js/views/kits.js"></script>
