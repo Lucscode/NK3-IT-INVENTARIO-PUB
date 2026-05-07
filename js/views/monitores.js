@@ -6,6 +6,7 @@ async function renderMonitores() {
   document.getElementById('monitoresContainer').innerHTML = `<div style="padding:40px;text-align:center;color:var(--text2);">Carregando...</div>`;
   let ativos = await dbGetAtivos();
   let list = ativos.filter(a => a.tipo === 'Monitor');
+  const fullMonList = [...list]; // cópia antes de filtrar
 
   if (currentMonitorFilter !== 'todos') {
     list = list.filter(a => (a.status || '').toLowerCase() === currentMonitorFilter);
@@ -20,6 +21,23 @@ async function renderMonitores() {
     (a.modelo || '').toLowerCase().includes(search) ||
     (a.serie || '').toLowerCase().includes(search)
   );
+
+  // Atualizar badges de contagem nos filtros
+  const _nm = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const monFilters = [
+    { label: 'Todos', value: 'todos' },
+    { label: 'Em Uso', value: 'em uso' },
+    { label: 'Estoque', value: 'estoque' },
+    { label: 'Quebrado', value: 'quebrado' },
+  ];
+  const monContainer = document.getElementById('monitorFilters');
+  if (monContainer) {
+    monContainer.innerHTML = monFilters.map(f => {
+      const n = f.value === 'todos' ? fullMonList.length : fullMonList.filter(a => _nm(a.status) === _nm(f.value)).length;
+      const active = currentMonitorFilter === f.value ? ' active' : '';
+      return `<button class="filter-btn${active}" onclick="filterMonitores('${f.value}',this)">${f.label}<span class="filter-count">${n}</span></button>`;
+    }).join('');
+  }
 
   document.getElementById('monitoresContainer').innerHTML = `<div class="card"><div class="table-wrap"><table>
     <thead><tr><th>Monitor</th><th>Patrimônio</th><th>Status</th><th>Tela</th><th>Colaborador</th><th>Localização</th><th>Ações</th></tr></thead>

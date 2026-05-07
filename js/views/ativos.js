@@ -1,4 +1,5 @@
 // ===================== ATIVOS =====================
+let currentAtivoTipoFilter = 'todos';
 function _assetPhoto(fotos, icon) {
   if (fotos && fotos.length > 0) {
     return `<img src="${fotos[0].url}" alt="foto" style="width:100%;height:100%;object-fit:cover;"
@@ -13,18 +14,24 @@ async function renderAtivos() {
   let list = await dbGetAtivos();
   _cacheAtivos = list;
 
-  // Carregar fotos em paralelo (só a primeira de cada para o grid)
+  // Usar fotos já embutidas no retorno (ativo_fotos vem junto no select)
   const fotosMap = {};
-  await Promise.all(list.map(async a => {
-    const fotos = await dbGetFotos(a.id);
-    fotosMap[a.id] = fotos;
-  }));
+  list.forEach(a => { fotosMap[a.id] = a.ativo_fotos || []; });
+
+  // Atualizar contagens nos botões de filtro
+  _updateAtivoFilterCounts(list);
+
+  const _normS = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
+
+  if (currentAtivoTipoFilter !== 'todos') {
+    list = list.filter(a => _normS(a.tipo) === _normS(currentAtivoTipoFilter));
+  } else {
+    const tiposDedicados = ['celular', 'monitor'];
+    list = list.filter(a => !tiposDedicados.includes(_normS(a.tipo)));
+  }
 
   if (currentAtivoFilter !== 'todos') {
-    list = list.filter(a => {
-      const s = (a.status || '').trim().toLowerCase().replace(/_/g, ' ');
-      return s === currentAtivoFilter;
-    });
+    list = list.filter(a => _normS(a.status) === _normS(currentAtivoFilter));
   }
   const search = document.getElementById('globalSearch').value.toLowerCase();
   if (search) list = list.filter(a =>
@@ -80,6 +87,13 @@ async function renderAtivos() {
 function filterAtivos(f, btn) {
   currentAtivoFilter = f;
   document.querySelectorAll('#ativoFilters .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAtivos();
+}
+
+function filterAtivoTipo(tipo, btn) {
+  currentAtivoTipoFilter = tipo;
+  document.querySelectorAll('#ativoTipoFilters .filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderAtivos();
 }
@@ -314,4 +328,68 @@ async function deleteAtivo(id) {
   closeModal('modalDetalheAtivo');
   renderAtivos();
   updateStats();
+}
+
+// ── Contagens nos filtros ──────────────────────────────────
+function _updateAtivoFilterCounts(fullList) {
+  const norm = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
+  const tiposDedicados = ['celular', 'monitor'];
+  const semDedicados = fullList.filter(a => !tiposDedicados.includes(norm(a.tipo)));
+
+  // ── Filtros de Tipo ──────────────────────────────────────
+  const tipoFilters = [
+    { label: '<i class="bi bi-grid"></i> Todos',       value: 'todos' },
+    { label: '<i class="bi bi-laptop"></i> Notebook',  value: 'Notebook' },
+    { label: '<i class="bi bi-pc-display"></i> Desktop', value: 'Desktop' },
+    { label: '<i class="bi bi-display"></i> Monitor',  value: 'Monitor' },
+    { label: '<i class="bi bi-phone"></i> Celular',    value: 'Celular' },
+    { label: '<i class="bi bi-tablet"></i> Tablet',    value: 'Tablet' },
+    { label: '<i class="bi bi-mouse"></i> Periférico', value: 'Periférico' },
+    { label: '<i class="bi bi-hdd-stack"></i> Servidor', value: 'Servidor' },
+  ];
+
+  const tipoCount = v => v === 'todos'
+    ? semDedicados.length
+    : fullList.filter(a => norm(a.tipo) === norm(v)).length;
+
+  const tipoContainer = document.getElementById('ativoTipoFilters');
+  if (tipoContainer) {
+    tipoContainer.innerHTML = tipoFilters.map(f => {
+      const n = tipoCount(f.value);
+      const active = currentAtivoTipoFilter === f.value ? ' active' : '';
+      return `<button class="filter-btn${active}" onclick="filterAtivoTipo('${f.value}',this)">
+        ${f.label}<span class="filter-count">${n}</span>
+      </button>`;
+    }).join('');
+  }
+
+  // ── Filtros de Status ────────────────────────────────────
+  // Contagem baseada na lista após filtro de tipo
+  const listParaStatus = currentAtivoTipoFilter !== 'todos'
+    ? fullList.filter(a => norm(a.tipo) === norm(currentAtivoTipoFilter))
+    : semDedicados;
+
+  const statusFilters = [
+    { label: 'Todos',       value: 'todos' },
+    { label: 'Disponível',  value: 'disponivel' },
+    { label: 'Em Uso',      value: 'em uso' },
+    { label: 'Manutenção',  value: 'manutencao' },
+    { label: 'Estoque',     value: 'estoque' },
+    { label: 'Descartado',  value: 'descartado' },
+  ];
+
+  const statusCount = v => v === 'todos'
+    ? listParaStatus.length
+    : listParaStatus.filter(a => norm(a.status) === norm(v)).length;
+
+  const statusContainer = document.getElementById('ativoFilters');
+  if (statusContainer) {
+    statusContainer.innerHTML = statusFilters.map(f => {
+      const n = statusCount(f.value);
+      const active = currentAtivoFilter === f.value ? ' active' : '';
+      return `<button class="filter-btn${active}" onclick="filterAtivos('${f.value}',this)">
+        ${f.label}<span class="filter-count">${n}</span>
+      </button>`;
+    }).join('');
+  }
 }

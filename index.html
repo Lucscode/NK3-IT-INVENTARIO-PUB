@@ -177,14 +177,18 @@
             <div class="section-header">
               <div class="section-title">Ativos Recentes</div>
               <div style="display:flex; gap:8px; align-items:center;">
-                <select id="dashFilterTipo" class="hide-mobile" style="padding: 4px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg2); color: var(--text);" onchange="renderDashboard()">
+                <select id="dashFilterTipo" class="hide-mobile"
+                  style="padding: 4px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg2); color: var(--text);"
+                  onchange="renderDashboard()">
                   <option value="">Todos os Tipos</option>
                   <option value="Notebook">Notebook</option>
                   <option value="Desktop">Desktop</option>
                   <option value="Monitor">Monitor</option>
                   <option value="Celular">Celular</option>
                 </select>
-                <select id="dashFilterStatus" class="hide-mobile" style="padding: 4px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg2); color: var(--text);" onchange="renderDashboard()">
+                <select id="dashFilterStatus" class="hide-mobile"
+                  style="padding: 4px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg2); color: var(--text);"
+                  onchange="renderDashboard()">
                   <option value="">Qualquer Status</option>
                   <option value="disponivel">Disponível</option>
                   <option value="em uso">Em Uso</option>
@@ -219,13 +223,35 @@
         <div class="page" id="page-ativos">
           <div class="toolbar">
             <div class="toolbar-left">
-              <div class="filters" id="ativoFilters">
-                <button class="filter-btn active" onclick="filterAtivos('todos',this)">Todos</button>
-                <button class="filter-btn" onclick="filterAtivos('disponivel',this)">Disponível</button>
-                <button class="filter-btn" onclick="filterAtivos('em uso',this)">Em Uso</button>
-                <button class="filter-btn" onclick="filterAtivos('manutencao',this)">Manutenção</button>
-                <button class="filter-btn" onclick="filterAtivos('estoque',this)">Estoque</button>
-                <button class="filter-btn" onclick="filterAtivos('descartado',this)">Descartado</button>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <!-- Filtro por Tipo -->
+                <div class="filters" id="ativoTipoFilters">
+                  <button class="filter-btn active" onclick="filterAtivoTipo('todos',this)"><i class="bi bi-grid"></i>
+                    Todos</button>
+                  <button class="filter-btn" onclick="filterAtivoTipo('Notebook',this)"><i class="bi bi-laptop"></i>
+                    Notebook</button>
+                  <button class="filter-btn" onclick="filterAtivoTipo('Desktop',this)"><i class="bi bi-pc-display"></i>
+                    Desktop</button>
+                  <button class="filter-btn" onclick="filterAtivoTipo('Monitor',this)"><i class="bi bi-display"></i>
+                    Monitor</button>
+                  <button class="filter-btn" onclick="filterAtivoTipo('Celular',this)"><i class="bi bi-phone"></i>
+                    Celular</button>
+                  <button class="filter-btn" onclick="filterAtivoTipo('Tablet',this)"><i class="bi bi-tablet"></i>
+                    Tablet</button>
+                  <button class="filter-btn" onclick="filterAtivoTipo('Periférico',this)"><i class="bi bi-mouse"></i>
+                    Periférico</button>
+                  <button class="filter-btn" onclick="filterAtivoTipo('Servidor',this)"><i class="bi bi-hdd-stack"></i>
+                    Servidor</button>
+                </div>
+                <!-- Filtro por Status -->
+                <div class="filters" id="ativoFilters">
+                  <button class="filter-btn active" onclick="filterAtivos('todos',this)">Todos</button>
+                  <button class="filter-btn" onclick="filterAtivos('disponivel',this)">Disponível</button>
+                  <button class="filter-btn" onclick="filterAtivos('em uso',this)">Em Uso</button>
+                  <button class="filter-btn" onclick="filterAtivos('manutencao',this)">Manutenção</button>
+                  <button class="filter-btn" onclick="filterAtivos('estoque',this)">Estoque</button>
+                  <button class="filter-btn" onclick="filterAtivos('descartado',this)">Descartado</button>
+                </div>
               </div>
             </div>
             <div class="toolbar-right">
@@ -253,7 +279,8 @@
               </div>
             </div>
             <div class="toolbar-right">
-              <button class="btn btn-primary btn-sm" onclick="openNovoMonitor()"><i class="bi bi-plus-lg"></i> Novo Monitor</button>
+              <button class="btn btn-primary btn-sm" onclick="openNovoMonitor()"><i class="bi bi-plus-lg"></i> Novo
+                Monitor</button>
             </div>
           </div>
           <div id="monitoresContainer"></div>
@@ -271,7 +298,10 @@
               </div>
             </div>
             <div class="toolbar-right">
-              <button class="btn btn-primary btn-sm" onclick="openNovoCelular()"><i class="bi bi-plus-lg"></i> Novo Celular</button>
+              <button class="btn btn-ghost btn-sm" onclick="openImportCelularModal()"><i class="bi bi-upload"></i>
+                Importar CSV</button>
+              <button class="btn btn-primary btn-sm" onclick="openNovoCelular()"><i class="bi bi-plus-lg"></i> Novo
+                Celular</button>
             </div>
           </div>
           <div id="celularesContainer"></div>
@@ -756,10 +786,7 @@
             <label>Nome do Celular *</label>
             <input type="text" id="celNome" placeholder="Ex: iPhone 13">
           </div>
-          <div class="form-group">
-            <label>Patrimônio *</label>
-            <input type="text" id="celPatrimonio" placeholder="CEL-001">
-          </div>
+
           <div class="form-group">
             <label>Marca</label>
             <input type="text" id="celMarca" placeholder="Apple, Samsung, Motorola...">
@@ -768,10 +795,7 @@
             <label>Modelo</label>
             <input type="text" id="celModelo" placeholder="iPhone 13, Galaxy S22...">
           </div>
-          <div class="form-group">
-            <label>Número de Série</label>
-            <input type="text" id="celSerie" placeholder="SN123456">
-          </div>
+
           <div class="form-group">
             <label>Processador</label>
             <input type="text" id="celProc" placeholder="A15 Bionic">
@@ -823,6 +847,43 @@
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="closeModal('modalNovoCelular')">Cancelar</button>
         <button class="btn btn-primary" onclick="saveCelular()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: IMPORTAR CSV CELULARES -->
+  <div class="modal-overlay" id="modalImportCelular">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <div class="modal-title"><i class="bi bi-phone" style="margin-right:8px;"></i>Importar Celulares via CSV</div>
+        <button class="modal-close" onclick="closeModal('modalImportCelular')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info" style="margin-bottom:16px;display:flex;gap:10px;align-items:flex-start;">
+          <i class="bi bi-info-circle-fill" style="margin-top:2px;flex-shrink:0;"></i>
+          <div>
+            <div style="font-weight:600;margin-bottom:6px;">Colunas esperadas no CSV:</div>
+            <code
+              style="font-size:11px;color:var(--text2);line-height:1.8;">Nome do celular, Marca, Modelo, Processador, Armazenamento, Memória, Numero, IMEI CHIP1, IMEI CHIP2, Colaborador, Status, Local, Observações</code>
+          </div>
+        </div>
+
+        <div id="celCsvUploadZone" class="upload-zone" onclick="document.getElementById('celCsvFile').click()"
+          style="margin-bottom:16px;">
+          <div class="upload-zone-icon"><i class="bi bi-file-earmark-spreadsheet"></i></div>
+          <div style="font-weight:600;margin-bottom:4px;">Clique para selecionar o CSV</div>
+          <div style="font-size:12px;color:var(--text2);">ou arraste o arquivo aqui</div>
+        </div>
+        <input type="file" id="celCsvFile" accept=".csv" style="display:none;" onchange="handleCelularCSV(this)">
+
+        <div id="celCsvPreview"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalImportCelular')">Cancelar</button>
+        <button class="btn btn-primary" id="btnImportCelularConfirm" onclick="confirmCelularImport()"
+          style="display:none;">
+          <i class="bi bi-cloud-upload"></i> Importar Celulares
+        </button>
       </div>
     </div>
   </div>
