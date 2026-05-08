@@ -74,7 +74,7 @@ async function renderClientTab(tab) {
           <thead><tr><th>Colaborador</th><th>Qtd</th><th>Data</th><th>Status</th></tr></thead>
           <tbody>${hist.map(h=>`<tr>
             <td>${h.colab||'—'}</td><td>${h.quantidade}</td><td>${fmtDate(h.data)}</td>
-            <td>${h.cancelado?'<span class="badge badge-red">Cancelado</span>':'<span class="badge badge-green">Entregue</span>'}</td>
+            <td>${kitStatusBadge(h)}</td>
           </tr>`).join('')}</tbody>
         </table></div>
       </div>`;

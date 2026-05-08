@@ -40,6 +40,12 @@ async function renderKitTab(tab) {
   } else if (tab === 'historico') {
     const hist = await dbGetKitHistorico();
     _cacheKitHistorico = hist;
+    const statusOpts = [
+      { v: 'pendente',      l: 'Pendente' },
+      { v: 'em preparacao', l: 'Em Preparação' },
+      { v: 'enviado',       l: 'Enviado' },
+      { v: 'entregue',      l: 'Entregue' },
+    ];
     c.innerHTML = `<div class="card"><div class="table-wrap"><table>
       <thead><tr><th>Colaborador</th><th>Qtd Kits</th><th>Data</th><th>Obs</th><th>Status</th><th>Ações</th></tr></thead>
       <tbody>${hist.map(h=>`<tr>
@@ -47,7 +53,15 @@ async function renderKitTab(tab) {
         <td><span class="badge badge-blue">${h.quantidade}</span></td>
         <td>${fmtDate(h.data)}</td>
         <td style="font-size:12px;color:var(--text2);">${h.obs||'—'}</td>
-        <td>${h.cancelado ? '<span class="badge badge-red">Cancelado</span>' : '<span class="badge badge-green">Entregue</span>'}</td>
+        <td>
+          ${h.cancelado
+            ? '<span class="badge badge-red"><span class="dot"></span>Cancelado</span>'
+            : `<select onchange="updateKitStatus('${h.id}',this.value)"
+                style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;font-family:var(--sans);cursor:pointer;">
+                ${statusOpts.map(o=>`<option value="${o.v}" ${(h.status||'pendente')===o.v?'selected':''}>${o.l}</option>`).join('')}
+              </select>`
+          }
+        </td>
         <td>${!h.cancelado ? `<button class="btn btn-danger btn-sm" onclick="cancelarKit('${h.id}',${h.quantidade})">Cancelar</button>` : '—'}</td>
       </tr>`).join('')}</tbody>
     </table></div></div>`;
@@ -82,6 +96,13 @@ async function cancelarKit(id, qtd) {
     await dbUpdateKitItem(key, kits[key] + qtd);
   }
   notify('Saída cancelada e estoque devolvido');
+  renderKitTab('historico');
+}
+
+async function updateKitStatus(id, status) {
+  const { error } = await sb.from('kit_historico').update({ status }).eq('id', id);
+  if (error) { notify('Erro ao atualizar status', 'error'); return; }
+  notify('Status atualizado!');
   renderKitTab('historico');
 }
 

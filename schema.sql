@@ -150,6 +150,8 @@ CREATE TABLE kit_historico (
   data_saida  DATE,
   obs         TEXT DEFAULT '',
   cancelado   BOOLEAN NOT NULL DEFAULT FALSE,
+  status      TEXT NOT NULL DEFAULT 'pendente'
+                CHECK (status IN ('pendente','em preparacao','enviado','entregue')),
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

@@ -98,6 +98,7 @@ tr:hover td { background: var(--bg3); }
 }
 .badge-green  { background: #dcfce7; color: #16a34a; }
 .badge-blue   { background: #dbeafe; color: #2563eb; }
+.badge-purple { background: #ede9fe; color: #7c3aed; }
 .badge-orange { background: #ffedd5; color: #ea580c; }
 .badge-yellow { background: #fef9c3; color: #ca8a04; }
 .badge-red    { background: #fee2e2; color: #dc2626; }
