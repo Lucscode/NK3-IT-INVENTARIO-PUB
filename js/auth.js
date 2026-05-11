@@ -1,5 +1,19 @@
 // ===================== AUTH (Supabase Auth) =====================
 
+function togglePassword() {
+  const passInput = document.getElementById('loginPass');
+  const icon = document.getElementById('togglePassIcon');
+  if (passInput.type === 'password') {
+    passInput.type = 'text';
+    icon.classList.remove('bi-eye');
+    icon.classList.add('bi-eye-slash');
+  } else {
+    passInput.type = 'password';
+    icon.classList.remove('bi-eye-slash');
+    icon.classList.add('bi-eye');
+  }
+}
+
 function _applyRoleSidebar(role) {
   const isAdmin = role === 'admin';
   ['adminSectionPrincipal', 'adminSectionOperacoes'].forEach(id => {
