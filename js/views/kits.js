@@ -1,12 +1,5 @@
 // ===================== KITS =====================
-function kitTab(tab, el) {
-  currentKitTab = tab;
-  document.querySelectorAll('#page-kits .tab').forEach(t => t.classList.remove('active'));
-  if (el) el.classList.add('active');
-  renderKitTab(tab);
-}
-
-async function renderKitTab(tab) {
+async function renderKitTab() {
   const c = document.getElementById('kitTabContent');
   const ITEMS = [
     { key:'mochila', icon:'backpack', name:'Mochila' },
@@ -16,10 +9,19 @@ async function renderKitTab(tab) {
     { key:'mousepad',icon:'mouse2', name:'Mousepad'},
   ];
 
-  if (tab === 'estoque') {
-    const kits = await dbGetKitEstoque();
+  try {
+    const [kits, hist] = await Promise.all([dbGetKitEstoque(), dbGetKitHistorico()]);
     _cacheKitEstoque = kits;
+    _cacheKitHistorico = hist;
     const completos = ITEMS.length ? Math.min(...ITEMS.map(i => kits[i.key]||0)) : 0;
+
+    const statusOpts = [
+      { v: 'pendente',      l: 'Pendente' },
+      { v: 'em preparacao', l: 'Em Preparação' },
+      { v: 'enviado',       l: 'Enviado' },
+      { v: 'entregue',      l: 'Entregue' },
+    ];
+
     c.innerHTML = `
       <div class="alert alert-success"><i class="bi bi-gift"></i> <b>${completos}</b> kits completos disponíveis</div>
       <div class="kit-items">${ITEMS.map(i=>`
@@ -28,45 +30,53 @@ async function renderKitTab(tab) {
           <div class="kit-item-name">${i.name}</div>
           <div class="kit-item-count">${kits[i.key]||0}</div>
         </div>`).join('')}</div>
-      <div style="display:flex;gap:8px;">
+      <div style="display:flex;gap:8px;margin-bottom:24px;">
         <button class="btn btn-primary" onclick="openModal('modalKitSaida')"><i class="bi bi-box-arrow-up"></i> Registrar Saída</button>
         <button class="btn btn-ghost" onclick="openKitEstoque()"><i class="bi bi-plus-lg"></i> Adicionar Estoque</button>
+      </div>
+
+      <div class="card">
+        <div class="section-header" style="padding:16px 16px 12px;">
+          <div class="section-title"><i class="bi bi-clock-history"></i> Histórico de Saídas</div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Colaborador</th><th>Qtd Kits</th><th>Data</th><th>Obs</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody>${hist.length === 0
+            ? `<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px;">Nenhuma saída registrada ainda.</td></tr>`
+            : hist.map(h=>`<tr>
+            <td>${h.colab||'—'}</td>
+            <td><span class="badge badge-blue">${h.quantidade}</span></td>
+            <td>${fmtDate(h.data)}</td>
+            <td style="font-size:12px;color:var(--text2);">${h.obs||'—'}</td>
+            <td>
+              ${h.cancelado
+                ? '<span class="badge badge-red"><span class="dot"></span>Cancelado</span>'
+                : `<select onchange="updateKitStatus('${h.id}',this.value)"
+                    style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;font-family:var(--sans);cursor:pointer;">
+                    ${statusOpts.map(o=>`<option value="${o.v}" ${(h.status||'pendente')===o.v?'selected':''}>${o.l}</option>`).join('')}
+                  </select>`
+              }
+            </td>
+            <td>${!h.cancelado ? `<button class="btn btn-danger btn-sm" onclick="cancelarKit('${h.id}',${h.quantidade})">Cancelar</button>` : '—'}</td>
+          </tr>`).join('')}
+          </tbody>
+        </table></div>
       </div>`;
 
-  } else if (tab === 'saida') {
-    openModal('modalKitSaida');
-    renderKitTab('estoque');
-
-  } else if (tab === 'historico') {
-    const hist = await dbGetKitHistorico();
-    _cacheKitHistorico = hist;
-    const statusOpts = [
-      { v: 'pendente',      l: 'Pendente' },
-      { v: 'em preparacao', l: 'Em Preparação' },
-      { v: 'enviado',       l: 'Enviado' },
-      { v: 'entregue',      l: 'Entregue' },
-    ];
-    c.innerHTML = `<div class="card"><div class="table-wrap"><table>
-      <thead><tr><th>Colaborador</th><th>Qtd Kits</th><th>Data</th><th>Obs</th><th>Status</th><th>Ações</th></tr></thead>
-      <tbody>${hist.map(h=>`<tr>
-        <td>${h.colab||'—'}</td>
-        <td><span class="badge badge-blue">${h.quantidade}</span></td>
-        <td>${fmtDate(h.data)}</td>
-        <td style="font-size:12px;color:var(--text2);">${h.obs||'—'}</td>
-        <td>
-          ${h.cancelado
-            ? '<span class="badge badge-red"><span class="dot"></span>Cancelado</span>'
-            : `<select onchange="updateKitStatus('${h.id}',this.value)"
-                style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;font-family:var(--sans);cursor:pointer;">
-                ${statusOpts.map(o=>`<option value="${o.v}" ${(h.status||'pendente')===o.v?'selected':''}>${o.l}</option>`).join('')}
-              </select>`
-          }
-        </td>
-        <td>${!h.cancelado ? `<button class="btn btn-danger btn-sm" onclick="cancelarKit('${h.id}',${h.quantidade})">Cancelar</button>` : '—'}</td>
-      </tr>`).join('')}</tbody>
-    </table></div></div>`;
+  } catch (err) {
+    console.error('[Kits] Erro ao carregar:', err);
+    c.innerHTML = `
+      <div class="alert" style="background:var(--danger-bg,#2d1a1a);border:1px solid var(--danger,#e55);color:var(--danger,#e55);border-radius:8px;padding:16px;display:flex;gap:10px;align-items:center;">
+        <i class="bi bi-exclamation-triangle-fill" style="font-size:20px;"></i>
+        <div>
+          <b>Erro ao carregar Kits</b><br>
+          <span style="font-size:12px;opacity:0.8;">${err.message}</span><br>
+          <span style="font-size:11px;opacity:0.6;margin-top:4px;display:block;">Verifique se a migration <code>migration_kit_status.sql</code> foi executada no Supabase.</span>
+        </div>
+      </div>`;
   }
 }
+
 
 async function registrarSaidaKit() {
   const colab = document.getElementById('kitColabSaida').value.trim();
@@ -84,7 +94,7 @@ async function registrarSaidaKit() {
   await dbAddKitHistorico({ colab, quantidade: qtd, data, obs, cancelado: false });
   notify(`Kit entregue para ${colab}!`);
   closeModal('modalKitSaida');
-  renderKitTab('estoque');
+  renderKitTab();
 }
 
 async function cancelarKit(id, qtd) {
@@ -96,14 +106,14 @@ async function cancelarKit(id, qtd) {
     await dbUpdateKitItem(key, kits[key] + qtd);
   }
   notify('Saída cancelada e estoque devolvido');
-  renderKitTab('historico');
+  renderKitTab();
 }
 
 async function updateKitStatus(id, status) {
   const { error } = await sb.from('kit_historico').update({ status }).eq('id', id);
   if (error) { notify('Erro ao atualizar status', 'error'); return; }
   notify('Status atualizado!');
-  renderKitTab('historico');
+  renderKitTab();
 }
 
 async function openKitEstoque() {
@@ -131,5 +141,5 @@ async function saveKitStock() {
   }
   notify('Estoque atualizado!');
   closeModal('modalKitEstoque');
-  renderKitTab('estoque');
+  renderKitTab();
 }

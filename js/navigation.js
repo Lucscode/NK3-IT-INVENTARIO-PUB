@@ -57,7 +57,7 @@ function goTo(page) {
   if(page === 'celulares') renderCelulares();
   if(page === 'colaboradores') renderColabs();
   if(page === 'historico') renderHistorico();
-  if(page === 'kits') { currentKitTab='estoque'; renderKitTab('estoque'); }
+  if(page === 'kits') { renderKitTab(); }
   if(page === 'solicitacoes') renderSolicitacoes();
   if(page === 'area-cliente') { renderClientTab('solicitar'); }
 }
