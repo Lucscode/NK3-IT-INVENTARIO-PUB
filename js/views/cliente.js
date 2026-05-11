@@ -10,7 +10,7 @@ async function renderClientTab(tab) {
 
   if (tab === 'solicitar') {
     c.innerHTML = `
-      <div class="card" style="max-width:700px; padding: 32px;">
+      <div class="card" style="max-width:700px; margin: 0 auto; padding: 32px;">
         <!-- DADOS DO COLABORADOR -->
         <h3 style="font-size:16px; margin-bottom:4px; color:var(--text);">Dados do Colaborador</h3>
         <p style="font-size:13px; color:var(--text2); margin-bottom:24px;">Preencha as informações do novo colaborador que receberá o equipamento.</p>
@@ -18,7 +18,7 @@ async function renderClientTab(tab) {
         <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
           <div class="form-group span2"><label>Nome completo *</label><input type="text" id="solNome" placeholder="Nome do colaborador"></div>
           <div class="form-group"><label>CPF *</label><input type="text" id="solCpf" placeholder="000.000.000-00"></div>
-          <div class="form-group"><label>E-mail *</label><input type="email" id="solEmail" placeholder="colaborador@empresa.com"></div>
+          <div class="form-group"><label>E-mail</label><input type="email" id="solEmail" placeholder="colaborador@empresa.com"></div>
           <div class="form-group"><label>Data de início *</label><input type="date" id="solInicio"></div>
         </div>
 
@@ -28,7 +28,17 @@ async function renderClientTab(tab) {
         <h3 style="font-size:16px; margin-bottom:24px; color:var(--text);">Endereço de Entrega</h3>
         
         <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
-          <div class="form-group"><label>CEP *</label><input type="text" id="solCep" placeholder="00000-000"></div>
+          <div class="form-group">
+            <label>CEP *</label>
+            <div style="position:relative;">
+              <input type="text" id="solCep" placeholder="00000-000" maxlength="9"
+                oninput="this.value=this.value.replace(/\D/g,'').replace(/(\d{5})(\d)/,'$1-$2').substring(0,9)"
+                onblur="buscarCep(this.value)"
+                style="width:100%;">
+              <span id="cepSpinner" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3);"><i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite;"></i></span>
+              <span id="cepErro" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#e55;"><i class="bi bi-x-circle"></i> CEP inválido</span>
+            </div>
+          </div>
           <div class="form-group"><label>Bairro *</label><input type="text" id="solBairro" placeholder="Bairro"></div>
           <div class="form-group span2"><label>Rua *</label><input type="text" id="solRua" placeholder="Rua / Avenida"></div>
           <div class="form-group"><label>Número *</label><input type="text" id="solNumero" placeholder="123"></div>
@@ -82,21 +92,75 @@ async function renderClientTab(tab) {
   } else if (tab === 'maquinas') {
     const ativos = await dbGetAtivos();
     const visiveis = ativos.filter(a => a.status !== 'descartado');
-    c.innerHTML = `<div class="asset-grid">${visiveis.map(a=>`
-      <div class="asset-card" style="cursor:default;">
-        <div class="asset-card-img"><div class="asset-emoji-fallback"><i class="bi bi-${a.emoji||'laptop'}"></i></div>
-          <div class="badge-overlay">${statusBadge(a.status)}</div>
+
+    // Listas únicas para os filtros
+    const tipos   = [...new Set(visiveis.map(a => a.tipo).filter(Boolean))].sort();
+    const statuses = [...new Set(visiveis.map(a => a.status).filter(Boolean))].sort();
+
+    const statusLabel = { disponivel:'Disponível', 'em uso':'Em Uso', manutencao:'Manutenção', estoque:'Estoque' };
+
+    c.innerHTML = `
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:20px;">
+        <div style="position:relative;flex:1;min-width:180px;">
+          <i class="bi bi-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;"></i>
+          <input type="text" id="clientMaqSearch" placeholder="Buscar por nome ou patrimônio..."
+            oninput="filtrarMaquinasCliente()"
+            style="width:100%;padding:8px 10px 8px 32px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;box-sizing:border-box;">
         </div>
-        <div class="asset-card-body">
-          <div class="asset-card-meta"><span class="asset-card-patrimonio">${a.patrimonio}</span><span class="asset-card-tipo">${a.tipo||''}</span></div>
-          <div class="asset-card-name">${a.nome}</div>
-          <div class="asset-card-info">
-            <div class="asset-card-info-row"><i class="bi bi-person"></i> <span>${a.colab||'Disponível'}</span></div>
-          </div>
-        </div>
-      </div>`).join('') || '<div class="empty"><div class="empty-icon"><i class="bi bi-laptop"></i></div><div class="empty-title">Nenhum ativo disponível</div></div>'}
-    </div>`;
+        <select id="clientMaqTipo" onchange="filtrarMaquinasCliente()"
+          style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;cursor:pointer;">
+          <option value="">Todos os Tipos</option>
+          ${tipos.map(t => `<option value="${t}">${t}</option>`).join('')}
+        </select>
+        <select id="clientMaqStatus" onchange="filtrarMaquinasCliente()"
+          style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;cursor:pointer;">
+          <option value="">Qualquer Status</option>
+          ${statuses.map(s => `<option value="${s}">${statusLabel[s]||s}</option>`).join('')}
+        </select>
+        <span id="clientMaqCount" style="font-size:12px;color:var(--text3);white-space:nowrap;">${visiveis.length} equipamentos</span>
+      </div>
+      <div id="clientMaqGrid" class="asset-grid"></div>`;
+
+    // Guarda os dados no dataset para filtragem client-side
+    document.getElementById('clientMaqGrid').dataset.ativos = JSON.stringify(visiveis);
+    filtrarMaquinasCliente();
   }
+}
+
+function filtrarMaquinasCliente() {
+  const grid    = document.getElementById('clientMaqGrid');
+  const search  = (document.getElementById('clientMaqSearch')?.value || '').toLowerCase();
+  const tipo    = document.getElementById('clientMaqTipo')?.value || '';
+  const status  = document.getElementById('clientMaqStatus')?.value || '';
+  const ativos  = JSON.parse(grid.dataset.ativos || '[]');
+
+  const filtrados = ativos.filter(a => {
+    const matchSearch = !search || a.nome?.toLowerCase().includes(search) || a.patrimonio?.toLowerCase().includes(search);
+    const matchTipo   = !tipo   || a.tipo === tipo;
+    const matchStatus = !status || a.status === status;
+    return matchSearch && matchTipo && matchStatus;
+  });
+
+  document.getElementById('clientMaqCount').textContent = `${filtrados.length} equipamento${filtrados.length !== 1 ? 's' : ''}`;
+
+  grid.innerHTML = filtrados.map(a => `
+    <div class="asset-card" style="cursor:default;">
+      <div class="asset-card-img"><div class="asset-emoji-fallback"><i class="bi bi-${a.emoji||'laptop'}"></i></div>
+        <div class="badge-overlay">${statusBadge(a.status)}</div>
+      </div>
+      <div class="asset-card-body">
+        <div class="asset-card-meta"><span class="asset-card-patrimonio">${a.patrimonio}</span><span class="asset-card-tipo">${a.tipo||''}</span></div>
+        <div class="asset-card-name">${a.nome}</div>
+        <div class="asset-card-info">
+          <div class="asset-card-info-row"><i class="bi bi-person"></i> <span>${a.colab||'Disponível'}</span></div>
+        </div>
+      </div>
+    </div>`).join('') || `
+    <div class="empty" style="grid-column:1/-1;">
+      <div class="empty-icon"><i class="bi bi-search"></i></div>
+      <div class="empty-title">Nenhum equipamento encontrado</div>
+      <div class="empty-sub">Tente ajustar os filtros</div>
+    </div>`;
 }
 
 async function enviarSolicitacao() {
@@ -109,7 +173,7 @@ async function enviarSolicitacao() {
   const rua = document.getElementById('solRua').value.trim();
   const numero = document.getElementById('solNumero').value.trim();
   
-  if (!nome || !cpf || !email || !inicio || !cep || !bairro || !rua || !numero) { 
+  if (!nome || !cpf || !inicio || !cep || !bairro || !rua || !numero) { 
     notify('Preencha os campos obrigatórios (*)', 'error'); return; 
   }
 
@@ -131,4 +195,38 @@ async function enviarSolicitacao() {
   await updatePendBadge();
   notify('Solicitação enviada com sucesso!');
   renderClientTab('solicitar');
+}
+
+async function buscarCep(cep) {
+  const raw = cep.replace(/\D/g, '');
+  if (raw.length !== 8) return;
+
+  const spinner = document.getElementById('cepSpinner');
+  const erro    = document.getElementById('cepErro');
+  if (spinner) { spinner.style.display = ''; erro.style.display = 'none'; }
+
+  try {
+    const res  = await fetch(`https://viacep.com.br/ws/${raw}/json/`);
+    const data = await res.json();
+
+    if (data.erro) {
+      if (spinner) spinner.style.display = 'none';
+      if (erro)    erro.style.display = '';
+      return;
+    }
+
+    if (spinner) spinner.style.display = 'none';
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    set('solBairro', data.bairro);
+    set('solRua',    data.logradouro);
+
+    // Foca no campo número após preencher
+    const numEl = document.getElementById('solNumero');
+    if (numEl) numEl.focus();
+
+  } catch (e) {
+    if (spinner) spinner.style.display = 'none';
+    if (erro)    erro.style.display = '';
+  }
 }

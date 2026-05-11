@@ -225,6 +225,10 @@ tr:hover td { background: var(--bg3); }
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
 .modal-header {
   padding: 16px 20px;
   border-bottom: 1px solid var(--border);
