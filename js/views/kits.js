@@ -16,10 +16,10 @@ async function renderKitTab() {
     const completos = ITEMS.length ? Math.min(...ITEMS.map(i => kits[i.key]||0)) : 0;
 
     const statusOpts = [
-      { v: 'pendente',      l: 'Pendente' },
-      { v: 'em preparacao', l: 'Em Preparação' },
-      { v: 'enviado',       l: 'Enviado' },
-      { v: 'entregue',      l: 'Entregue' },
+      { v: 'pendente',     l: 'Pendente' },
+      { v: 'em andamento', l: 'Em Andamento' },
+      { v: 'enviado',      l: 'Enviado' },
+      { v: 'cancelado',    l: 'Cancelado' },
     ];
 
     c.innerHTML = `
