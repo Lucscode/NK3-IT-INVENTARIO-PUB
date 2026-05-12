@@ -4,7 +4,7 @@ async function renderSolicitacoes() {
   _cacheSolicitacoes = list;
   const statusOpts = ['pendente','em andamento','enviado','cancelado'];
   document.getElementById('solTableBody').innerHTML = list.map(s=>`<tr>
-    <td><b>${s.colaborador||s.colab||'—'}</b><br><span style="font-size:11px;color:var(--text2);">${s.email||''}</span></td>
+    <td><b>${s.nome||s.colaborador||s.colab||'—'}</b><br><span style="font-size:11px;color:var(--text2);">${s.email||''}</span></td>
     <td>${s.cpf||'—'}</td>
     <td>${fmtDate(s.inicio)}</td>
     <td>${s.kit ? '<span class="badge badge-green">Sim</span>' : '<span class="badge badge-gray">Não</span>'}</td>
@@ -34,7 +34,7 @@ function openSolDetalhe(id) {
   alert(`Solicitação #${s.id.split('-')[0]}
 
 [ COLABORADOR ]
-Nome: ${s.colaborador || s.colab || '—'}
+Nome: ${s.nome || s.colaborador || s.colab || '—'}
 CPF: ${s.cpf || '—'}
 E-mail: ${s.email || '—'}
 Início: ${fmtDate(s.inicio)}
