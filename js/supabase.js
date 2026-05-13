@@ -188,6 +188,11 @@ async function dbUpdateSolStatus(id, status) {
   if (error) _throw('Erro ao atualizar solicitação', error);
 }
 
+async function dbUpdateSolRastreio(id, rastreio) {
+  const { error } = await sb.from('solicitacoes').update({ rastreio }).eq('id', id);
+  if (error) _throw('Erro ao atualizar rastreio da solicitação', error);
+}
+
 async function dbDeleteSolicitacao(id) {
   const { error } = await sb.from('solicitacoes').delete().eq('id', id);
   if (error) _throw('Erro ao deletar solicitação', error);
