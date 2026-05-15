@@ -265,3 +265,12 @@ async function dbUpdateSolRastreio(id, rastreio) {
   const { error } = await sb.from('solicitacoes').update({ rastreio }).eq('id', id);
   if (error) _throw('Erro ao atualizar rastreio', error);
 }
+
+// ─── KIT STATUS ───────────────────────────────────────────────
+async function dbUpdateKitStatus(id, status) {
+  const cancelado = status === 'cancelado';
+  const { error } = await sb.from('kit_historico')
+    .update({ status, cancelado })
+    .eq('id', id);
+  if (error) _throw('Erro ao atualizar status do kit', error);
+}
