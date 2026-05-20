@@ -201,6 +201,9 @@
                   <option value="em uso">Em Uso</option>
                   <option value="manutencao">Manutenção</option>
                   <option value="estoque">Estoque</option>
+                  <option value="saindo para envio">Saindo para envio</option>
+                  <option value="entregue">Entregue</option>
+                  <option value="nao postado ainda">Não postado ainda</option>
                 </select>
                 <button class="btn btn-ghost btn-sm" onclick="goTo('ativos')">Ver todos →</button>
               </div>
@@ -258,6 +261,9 @@
                   <button class="filter-btn" onclick="filterAtivos('manutencao',this)">Manutenção</button>
                   <button class="filter-btn" onclick="filterAtivos('estoque',this)">Estoque</button>
                   <button class="filter-btn" onclick="filterAtivos('descartado',this)">Descartado</button>
+                  <button class="filter-btn" onclick="filterAtivos('saindo para envio',this)">Saindo para envio</button>
+                  <button class="filter-btn" onclick="filterAtivos('entregue',this)">Entregue</button>
+                  <button class="filter-btn" onclick="filterAtivos('nao postado ainda',this)">Não postado ainda</button>
                 </div>
               </div>
             </div>
@@ -468,6 +474,9 @@
               <option value="manutencao">Manutenção</option>
               <option value="estoque">Estoque</option>
               <option value="descartado">Descartado</option>
+              <option value="saindo para envio">Saindo para envio</option>
+              <option value="entregue">Entregue</option>
+              <option value="nao postado ainda">Não postado ainda</option>
             </select>
           </div>
           <div class="form-group">

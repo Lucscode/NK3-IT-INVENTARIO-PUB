@@ -78,7 +78,7 @@ CREATE TABLE ativos (
   disco       TEXT DEFAULT '',
   so          TEXT DEFAULT '',
   status      TEXT NOT NULL DEFAULT 'disponivel'
-                CHECK (status IN ('disponivel','em uso','manutencao','estoque','descartado','quebrado')),
+                CHECK (status IN ('disponivel','em uso','manutencao','estoque','descartado','quebrado','saindo para envio','entregue','nao postado ainda')),
   saude       TEXT NOT NULL DEFAULT 'bom'
                 CHECK (saude IN ('bom','regular','ruim')),
   colab       TEXT DEFAULT '',           -- nome do colaborador (desnormalizado para velocidade)
