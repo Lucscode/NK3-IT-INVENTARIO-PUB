@@ -147,3 +147,96 @@ async function deleteSol(id) {
   notify('Solicitação excluída!');
   renderSolicitacoes();
 }
+
+function openNovaSolicitacao() {
+  document.getElementById('adminSolNome').value = '';
+  document.getElementById('adminSolCpf').value = '';
+  document.getElementById('adminSolEmail').value = '';
+  document.getElementById('adminSolInicio').value = '';
+  document.getElementById('adminSolCep').value = '';
+  document.getElementById('adminSolBairro').value = '';
+  document.getElementById('adminSolCidade').value = '';
+  document.getElementById('adminSolUf').value = '';
+  document.getElementById('adminSolRua').value = '';
+  document.getElementById('adminSolNumero').value = '';
+  document.getElementById('adminSolComplemento').value = '';
+  document.getElementById('adminSolKit').checked = false;
+  document.getElementById('adminSolObs').value = '';
+
+  document.getElementById('modalNovaSolicitacao').classList.add('active');
+}
+
+async function enviarSolicitacaoAdmin() {
+  const nome  = document.getElementById('adminSolNome').value.trim();
+  const cpf   = document.getElementById('adminSolCpf').value.trim();
+  const email = document.getElementById('adminSolEmail').value.trim();
+  const inicio = document.getElementById('adminSolInicio').value;
+  const cep = document.getElementById('adminSolCep').value.trim();
+  const bairro = document.getElementById('adminSolBairro').value.trim();
+  const cidade = document.getElementById('adminSolCidade').value.trim();
+  const uf = document.getElementById('adminSolUf').value.trim();
+  const rua = document.getElementById('adminSolRua').value.trim();
+  const numero = document.getElementById('adminSolNumero').value.trim();
+  
+  if (!nome || !cpf || !inicio || !cep || !bairro || !cidade || !uf || !rua || !numero) { 
+    notify('Preencha os campos obrigatórios (*)', 'error'); return; 
+  }
+
+  const comp = document.getElementById('adminSolComplemento').value.trim();
+  const complementoStr = comp ? `${comp} (${cidade}/${uf.toUpperCase()})` : `${cidade}/${uf.toUpperCase()}`;
+
+  await dbCreateSolicitacao({
+    colaborador: nome,
+    cpf,
+    email,
+    inicio: inicio || null,
+    cep,
+    bairro,
+    rua,
+    numero,
+    complemento: complementoStr,
+    kit: document.getElementById('adminSolKit').checked,
+    obs: document.getElementById('adminSolObs').value.trim(),
+    status: 'pendente'
+  });
+  
+  if (typeof updatePendBadge === 'function') await updatePendBadge();
+  notify('Solicitação criada com sucesso!');
+  closeModal('modalNovaSolicitacao');
+  renderSolicitacoes();
+}
+
+async function buscarCepAdmin(cep) {
+  const raw = cep.replace(/\D/g, '');
+  if (raw.length !== 8) return;
+
+  const spinner = document.getElementById('adminCepSpinner');
+  const erro    = document.getElementById('adminCepErro');
+  if (spinner) { spinner.style.display = ''; erro.style.display = 'none'; }
+
+  try {
+    const res  = await fetch(`https://viacep.com.br/ws/${raw}/json/`);
+    const data = await res.json();
+
+    if (data.erro) {
+      if (spinner) spinner.style.display = 'none';
+      if (erro)    erro.style.display = '';
+      return;
+    }
+
+    if (spinner) spinner.style.display = 'none';
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    set('adminSolBairro', data.bairro);
+    set('adminSolCidade', data.localidade);
+    set('adminSolUf',     data.uf);
+    set('adminSolRua',    data.logradouro);
+
+    const numEl = document.getElementById('adminSolNumero');
+    if (numEl) numEl.focus();
+
+  } catch (e) {
+    if (spinner) spinner.style.display = 'none';
+    if (erro)    erro.style.display = '';
+  }
+}

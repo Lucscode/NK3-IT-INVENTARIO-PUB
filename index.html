@@ -233,38 +233,15 @@
         <div class="page" id="page-ativos">
           <div class="toolbar">
             <div class="toolbar-left">
-              <div style="display:flex;flex-direction:column;gap:6px;">
-                <!-- Filtro por Tipo -->
-                <div class="filters" id="ativoTipoFilters">
-                  <button class="filter-btn active" onclick="filterAtivoTipo('todos',this)"><i class="bi bi-grid"></i>
-                    Todos</button>
-                  <button class="filter-btn" onclick="filterAtivoTipo('Notebook',this)"><i class="bi bi-laptop"></i>
-                    Notebook</button>
-                  <button class="filter-btn" onclick="filterAtivoTipo('Desktop',this)"><i class="bi bi-pc-display"></i>
-                    Desktop</button>
-                  <button class="filter-btn" onclick="filterAtivoTipo('Monitor',this)"><i class="bi bi-display"></i>
-                    Monitor</button>
-                  <button class="filter-btn" onclick="filterAtivoTipo('Celular',this)"><i class="bi bi-phone"></i>
-                    Celular</button>
-                  <button class="filter-btn" onclick="filterAtivoTipo('Tablet',this)"><i class="bi bi-tablet"></i>
-                    Tablet</button>
-                  <button class="filter-btn" onclick="filterAtivoTipo('Periférico',this)"><i class="bi bi-mouse"></i>
-                    Periférico</button>
-                  <button class="filter-btn" onclick="filterAtivoTipo('Servidor',this)"><i class="bi bi-hdd-stack"></i>
-                    Servidor</button>
-                </div>
-                <!-- Filtro por Status -->
-                <div class="filters" id="ativoFilters">
-                  <button class="filter-btn active" onclick="filterAtivos('todos',this)">Todos</button>
-                  <button class="filter-btn" onclick="filterAtivos('disponivel',this)">Disponível</button>
-                  <button class="filter-btn" onclick="filterAtivos('em uso',this)">Em Uso</button>
-                  <button class="filter-btn" onclick="filterAtivos('manutencao',this)">Manutenção</button>
-                  <button class="filter-btn" onclick="filterAtivos('estoque',this)">Estoque</button>
-                  <button class="filter-btn" onclick="filterAtivos('descartado',this)">Descartado</button>
-                  <button class="filter-btn" onclick="filterAtivos('saindo para envio',this)">Saindo para envio</button>
-                  <button class="filter-btn" onclick="filterAtivos('entregue',this)">Entregue</button>
-                  <button class="filter-btn" onclick="filterAtivos('nao postado ainda',this)">Não postado ainda</button>
-                </div>
+              <div style="display:flex;gap:10px;align-items:center;width:100%;max-width:500px;">
+                <select id="ativoTipoSelect" onchange="filterAtivoTipo(this.value)" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;flex:1;">
+                  <option value="todos">Todos os Tipos</option>
+                  <!-- rendered by js -->
+                </select>
+                <select id="ativoStatusSelect" onchange="filterAtivos(this.value)" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;flex:1;">
+                  <option value="todos">Qualquer Status</option>
+                  <!-- rendered by js -->
+                </select>
               </div>
             </div>
             <div class="toolbar-right">
@@ -284,11 +261,11 @@
         <div class="page" id="page-monitores">
           <div class="toolbar">
             <div class="toolbar-left">
-              <div class="filters" id="monitorFilters">
-                <button class="filter-btn active" onclick="filterMonitores('todos',this)">Todos</button>
-                <button class="filter-btn" onclick="filterMonitores('em uso',this)">Em Uso</button>
-                <button class="filter-btn" onclick="filterMonitores('estoque',this)">Estoque</button>
-                <button class="filter-btn" onclick="filterMonitores('quebrado',this)">Quebrado</button>
+              <div style="display:flex;gap:10px;align-items:center;width:100%;max-width:300px;">
+                <select id="monitorFilters" onchange="filterMonitores(this.value)" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;flex:1;">
+                  <option value="todos">Todos</option>
+                  <!-- rendered by js -->
+                </select>
               </div>
             </div>
             <div class="toolbar-right">
@@ -303,11 +280,11 @@
         <div class="page" id="page-celulares">
           <div class="toolbar">
             <div class="toolbar-left">
-              <div class="filters" id="celularFilters">
-                <button class="filter-btn active" onclick="filterCelulares('todos',this)">Todos</button>
-                <button class="filter-btn" onclick="filterCelulares('disponivel',this)">Disponível</button>
-                <button class="filter-btn" onclick="filterCelulares('em uso',this)">Em Uso</button>
-                <button class="filter-btn" onclick="filterCelulares('manutencao',this)">Manutenção</button>
+              <div style="display:flex;gap:10px;align-items:center;width:100%;max-width:300px;">
+                <select id="celularFilters" onchange="filterCelulares(this.value)" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;flex:1;">
+                  <option value="todos">Todos</option>
+                  <!-- rendered by js -->
+                </select>
               </div>
             </div>
             <div class="toolbar-right">
@@ -373,6 +350,12 @@
 
         <!-- SOLICITAÇÕES -->
         <div class="page" id="page-solicitacoes">
+          <div class="toolbar">
+            <div class="toolbar-left"></div>
+            <div class="toolbar-right">
+              <button class="btn btn-primary btn-sm" onclick="openNovaSolicitacao()"><i class="bi bi-plus-lg"></i> Nova Solicitação</button>
+            </div>
+          </div>
           <div class="card">
             <div class="table-wrap">
               <table>
@@ -397,6 +380,7 @@
         <div class="page" id="page-area-cliente">
           <div class="tabs">
             <div class="tab active" onclick="clientTab('solicitar',this)"><i class="bi bi-clipboard-plus"></i> Solicitar Máquina</div>
+            <div class="tab" onclick="clientTab('minhas_solicitacoes',this)"><i class="bi bi-inbox"></i> Minhas Solicitações</div>
             <div class="tab" onclick="clientTab('kits',this)"><i class="bi bi-gift"></i> Kits</div>
             <div class="tab" onclick="clientTab('maquinas',this)"><i class="bi bi-laptop"></i> Máquinas</div>
           </div>
@@ -899,6 +883,161 @@
       </div>
     </div>
   </div>
+
+  <!-- MODAL: NOVA SOLICITAÇÃO (ADMIN) -->
+  <div class="modal-overlay" id="modalNovaSolicitacao">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <div class="modal-title">Nova Solicitação</div>
+        <button class="modal-close" onclick="closeModal('modalNovaSolicitacao')">×</button>
+      </div>
+      <div class="modal-body">
+        <h3 style="font-size:16px; margin-bottom:4px; color:var(--text);">Dados do Colaborador</h3>
+        <p style="font-size:13px; color:var(--text2); margin-bottom:24px;">Preencha as informações do novo colaborador que receberá o equipamento.</p>
+        
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group span2"><label>Nome completo *</label><input type="text" id="adminSolNome" placeholder="Nome do colaborador"></div>
+          <div class="form-group"><label>CPF *</label><input type="text" id="adminSolCpf" placeholder="000.000.000-00"></div>
+          <div class="form-group"><label>E-mail</label><input type="email" id="adminSolEmail" placeholder="colaborador@empresa.com"></div>
+          <div class="form-group"><label>Data de início *</label><input type="date" id="adminSolInicio"></div>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid var(--border); margin: 32px 0;">
+
+        <!-- ENDEREÇO DE ENTREGA -->
+        <h3 style="font-size:16px; margin-bottom:24px; color:var(--text);">Endereço de Entrega</h3>
+        
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label>CEP *</label>
+            <div style="position:relative;">
+              <input type="text" id="adminSolCep" placeholder="00000-000" maxlength="9"
+                oninput="this.value=this.value.replace(/\D/g,'').replace(/(\d{5})(\d)/,'$1-$2').substring(0,9)"
+                onblur="buscarCepAdmin(this.value)"
+                style="width:100%;">
+              <span id="adminCepSpinner" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3);"><i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite;"></i></span>
+              <span id="adminCepErro" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#e55;"><i class="bi bi-x-circle"></i> CEP inválido</span>
+            </div>
+          </div>
+          <div class="form-group"><label>Bairro *</label><input type="text" id="adminSolBairro" placeholder="Bairro"></div>
+          <div class="form-group"><label>Cidade *</label><input type="text" id="adminSolCidade" placeholder="Cidade"></div>
+          <div class="form-group"><label>UF *</label><input type="text" id="adminSolUf" placeholder="UF" maxlength="2" style="text-transform:uppercase;"></div>
+          <div class="form-group span2"><label>Rua *</label><input type="text" id="adminSolRua" placeholder="Rua / Avenida"></div>
+          <div class="form-group"><label>Número *</label><input type="text" id="adminSolNumero" placeholder="123"></div>
+          <div class="form-group"><label>Complemento</label><input type="text" id="adminSolComplemento" placeholder="Apto, bloco, etc."></div>
+        </div>
+
+        <div style="margin-top: 32px; display: flex; align-items: flex-start; gap: 12px;">
+          <input type="checkbox" id="adminSolKit" style="width: 18px; height: 18px; accent-color: var(--accent); margin-top: 2px; cursor: pointer;">
+          <div>
+            <label for="adminSolKit" style="font-weight: 600; color: var(--text); cursor: pointer; display: block; margin-bottom: 2px;">Incluir kit boas-vindas</label>
+            <span style="font-size: 13px; color: var(--text2);">Mochila, squeeze, lapiseira, caderno e mousepad</span>
+          </div>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid var(--border); margin: 32px 0;">
+
+        <div class="form-group">
+          <label>Observações</label>
+          <textarea id="adminSolObs" placeholder="Alguma informação adicional sobre o pedido?" style="height: 100px; resize: vertical;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalNovaSolicitacao')">Cancelar</button>
+        <button class="btn btn-primary" onclick="enviarSolicitacaoAdmin()">Enviar Solicitação</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: INDICAR MÁQUINA (CLIENTE) -->
+  <div class="modal-overlay" id="modalIndicarMaquina">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Indicar Colaborador</div>
+        <button class="modal-close" onclick="closeModal('modalIndicarMaquina')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info" style="margin-bottom:16px;">
+          <i class="bi bi-laptop"></i> Você está indicando a máquina: <br>
+          <strong id="indicarNomeMq"></strong> (<span id="indicarPatriMq"></span>)
+        </div>
+        <input type="hidden" id="indicarPatrimonioHidden">
+        <input type="hidden" id="indicarNomeHidden">
+        
+        <div class="form-grid">
+          <div class="form-group span2">
+            <label>Nome do Colaborador *</label>
+            <input type="text" id="indicarNomeColab" placeholder="Para quem vai esta máquina?">
+          </div>
+          <div class="form-group">
+            <label>Data de Início</label>
+            <input type="date" id="indicarDataInicio">
+          </div>
+          <div class="form-group span2">
+            <label>Observações</label>
+            <textarea id="indicarObs" placeholder="Local de entrega na empresa, departamento, ou outras notas..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalIndicarMaquina')">Cancelar</button>
+        <button class="btn btn-primary" onclick="enviarIndicacaoMaquina()"><i class="bi bi-send"></i> Enviar Indicação</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: LIGHTBOX PARA FOTOS -->
+  <div class="modal-overlay" id="modalLightbox" style="z-index:9999;" onclick="closeModal('modalLightbox')">
+    <div style="position:relative; width:90vw; height:90vh; display:flex; justify-content:center; align-items:center;">
+      <button class="modal-close" style="position:absolute; top:20px; right:20px; color:#fff; font-size:36px; background:rgba(0,0,0,0.6); width:50px; height:50px; border-radius:50%; border:none; cursor:pointer; z-index:10000;" onclick="closeModal('modalLightbox')">×</button>
+      <img id="lightboxImg" src="" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:8px; box-shadow:0 10px 40px rgba(0,0,0,0.7);" onclick="event.stopPropagation()">
+      <div style="position:absolute; bottom:30px; display:flex; gap:16px; z-index:10000;">
+        <button class="btn btn-primary" onclick="event.stopPropagation(); rotateLightbox()" style="box-shadow:0 4px 15px rgba(0,0,0,0.5);"><i class="bi bi-arrow-clockwise"></i> Girar</button>
+        <button class="btn btn-primary" onclick="event.stopPropagation(); downloadLightbox()" style="box-shadow:0 4px 15px rgba(0,0,0,0.5);"><i class="bi bi-download"></i> Baixar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentLightboxRotation = 0;
+
+    function openLightbox(url) {
+      currentLightboxRotation = 0;
+      const img = document.getElementById('lightboxImg');
+      img.src = url;
+      img.style.transform = `rotate(${currentLightboxRotation}deg)`;
+      img.style.transition = 'none';
+      setTimeout(() => img.style.transition = 'transform 0.3s ease', 50);
+      document.getElementById('modalLightbox').classList.add('open');
+    }
+
+    function rotateLightbox() {
+      currentLightboxRotation += 90;
+      const img = document.getElementById('lightboxImg');
+      // O navegador cuida do tamanho usando object-fit e tamanho do container, 
+      // mas ao rotacionar 90deg, pode sair um pouco se for muito esticada. Na maioria dos casos funciona bem.
+      img.style.transform = `rotate(${currentLightboxRotation}deg)`;
+    }
+
+    async function downloadLightbox() {
+      const url = document.getElementById('lightboxImg').src;
+      try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'equipamento-foto.jpg';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+      } catch (err) {
+        // Em caso de erro de CORS, abre em nova aba
+        window.open(url, '_blank');
+      }
+    }
+  </script>
 
   <!-- Core -->
   <script src="js/supabase.js"></script>

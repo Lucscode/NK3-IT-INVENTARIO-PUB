@@ -1,5 +1,7 @@
 // ===================== CELULARES =====================
 let currentCelularFilter = 'todos';
+let currentPageCelulares = 1;
+const CELULARES_PER_PAGE = 20;
 let editingCelularId = null;
 
 async function renderCelulares() {
@@ -27,7 +29,7 @@ async function renderCelulares() {
   // Atualizar badges de contagem nos filtros
   const _nc = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const celFilters = [
-    { label: 'Todos', value: 'todos' },
+    { label: 'Todos os Status', value: 'todos' },
     { label: 'Disponível', value: 'disponivel' },
     { label: 'Em Uso', value: 'em uso' },
     { label: 'Manutenção', value: 'manutencao' },
@@ -36,14 +38,20 @@ async function renderCelulares() {
   if (celFContainer) {
     celFContainer.innerHTML = celFilters.map(f => {
       const n = f.value === 'todos' ? fullCelList.length : fullCelList.filter(a => _nc(a.status) === _nc(f.value)).length;
-      const active = currentCelularFilter === f.value ? ' active' : '';
-      return `<button class="filter-btn${active}" onclick="filterCelulares('${f.value}',this)">${f.label}<span class="filter-count">${n}</span></button>`;
+      const selected = currentCelularFilter === f.value ? ' selected' : '';
+      return `<option value="${f.value}"${selected}>${f.label} (${n})</option>`;
     }).join('');
   }
 
-  document.getElementById('celularesContainer').innerHTML = `<div class="card"><div class="table-wrap"><table>
+  const totalItems = list.length;
+  const totalPages = Math.ceil(totalItems / CELULARES_PER_PAGE) || 1;
+  if (currentPageCelulares > totalPages) currentPageCelulares = totalPages;
+  const startIdx = (currentPageCelulares - 1) * CELULARES_PER_PAGE;
+  const pagedList = list.slice(startIdx, startIdx + CELULARES_PER_PAGE);
+
+  let html = `<div class="card"><div class="table-wrap"><table>
     <thead><tr><th>Celular</th><th>Status</th><th>Número</th><th>Colaborador</th><th>Ações</th></tr></thead>
-    <tbody>${list.map(a => `<tr>
+    <tbody>${pagedList.map(a => `<tr>
       <td><span style="margin-right:8px;font-size:16px;color:var(--accent);"><i class="bi bi-phone"></i></span><b>${a.nome}</b></td>
       <td>${statusBadge(a.status)}</td>
       <td><span class="text-mono" style="font-size:12px;">${a.numero_linha || '—'}</span></td>
@@ -51,12 +59,28 @@ async function renderCelulares() {
       <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetalheCelular('${a.id}')">Ver</button></td>
     </tr>`).join('') || `<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text2);">Nenhum celular encontrado</td></tr>`}</tbody>
   </table></div></div>`;
+
+  if (totalPages > 1) {
+    html += `
+      <div style="display:flex; justify-content:center; align-items:center; gap:16px; margin-top:24px;">
+        <button class="btn btn-ghost" onclick="changePageCelulares(${currentPageCelulares - 1})" ${currentPageCelulares === 1 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Anterior</button>
+        <span style="font-size:13px; color:var(--text2); font-weight:600;">Página ${currentPageCelulares} de ${totalPages}</span>
+        <button class="btn btn-ghost" onclick="changePageCelulares(${currentPageCelulares + 1})" ${currentPageCelulares === totalPages ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Próxima</button>
+      </div>
+    `;
+  }
+
+  document.getElementById('celularesContainer').innerHTML = html;
 }
 
-function filterCelulares(f, btn) {
+function changePageCelulares(p) {
+  currentPageCelulares = p;
+  renderCelulares();
+}
+
+function filterCelulares(f) {
   currentCelularFilter = f;
-  document.querySelectorAll('#celularFilters .filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  currentPageCelulares = 1;
   renderCelulares();
 }
 
@@ -172,8 +196,10 @@ async function openDetalheCelular(id) {
     </div>
     ${a.obs ? `<div class="alert alert-info"><i class="bi bi-sticky" style="margin-right:6px;"></i> ${a.obs}</div>` : ''}`;
   
-  document.getElementById('btnEditAtivo').onclick = () => { closeModal('modalDetalheAtivo'); openNovoCelular(id); };
-  document.getElementById('btnDeleteAtivo').onclick = () => deleteCelular(id);
+  const btnEdit = document.getElementById('btnEditAtivo');
+  if (btnEdit) { btnEdit.style.display = ''; btnEdit.onclick = () => { closeModal('modalDetalheAtivo'); openNovoCelular(id); }; }
+  const btnDelete = document.getElementById('btnDeleteAtivo');
+  if (btnDelete) { btnDelete.style.display = ''; btnDelete.onclick = () => deleteCelular(id); }
   openModal('modalDetalheAtivo');
 }
 

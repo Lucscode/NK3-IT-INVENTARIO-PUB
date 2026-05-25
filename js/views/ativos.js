@@ -1,5 +1,7 @@
 // ===================== ATIVOS =====================
 let currentAtivoTipoFilter = 'todos';
+let currentPageAtivos = 1;
+const ATIVOS_PER_PAGE = 20;
 function _assetPhoto(fotos, icon) {
   if (fotos && fotos.length > 0) {
     return `<img src="${fotos[0].url}" alt="foto" style="width:100%;height:100%;object-fit:cover;"
@@ -46,8 +48,15 @@ async function renderAtivos() {
     (a.so || '').toLowerCase().includes(search)
   );
 
+  const totalItems = list.length;
+  const totalPages = Math.ceil(totalItems / ATIVOS_PER_PAGE) || 1;
+  if (currentPageAtivos > totalPages) currentPageAtivos = totalPages;
+  const startIdx = (currentPageAtivos - 1) * ATIVOS_PER_PAGE;
+  const pagedList = list.slice(startIdx, startIdx + ATIVOS_PER_PAGE);
+
+  let html = '';
   if (currentView === 'grid') {
-    document.getElementById('ativosContainer').innerHTML = `<div class="asset-grid">${list.map(a => `
+    html = `<div class="asset-grid">${pagedList.map(a => `
         <div class="asset-card" onclick="openDetalhe('${a.id}')">
           <div class="asset-card-img">
             ${_assetPhoto(fotosMap[a.id], a.emoji)}
@@ -65,12 +74,12 @@ async function renderAtivos() {
             </div>
           </div>
         </div>`).join('')
-      || '<div class="empty"><div class="empty-icon"><i class="bi bi-laptop"></i></div><div class="empty-title">Nenhum ativo encontrado</div></div>'}
+      || '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon"><i class="bi bi-laptop"></i></div><div class="empty-title">Nenhum ativo encontrado</div></div>'}
     </div>`;
   } else {
-    document.getElementById('ativosContainer').innerHTML = `<div class="card"><div class="table-wrap"><table>
+    html = `<div class="card"><div class="table-wrap"><table>
       <thead><tr><th>Ativo</th><th>Patrimônio</th><th>Tipo</th><th>Status</th><th>Saúde</th><th>Colaborador</th><th>Garantia</th><th>Ações</th></tr></thead>
-      <tbody>${list.map(a => `<tr>
+      <tbody>${pagedList.map(a => `<tr>
         <td><span style="margin-right:8px;font-size:16px;color:var(--accent);"><i class="bi bi-${a.emoji || 'laptop'}"></i></span><b>${a.nome}</b></td>
         <td><span class="text-mono" style="font-size:11px;color:var(--text2);">${a.patrimonio}</span></td>
         <td><span style="font-size:12px;">${a.tipo || ''}</span></td>
@@ -82,19 +91,34 @@ async function renderAtivos() {
       </tr>`).join('')}</tbody>
     </table></div></div>`;
   }
+
+  if (totalPages > 1) {
+    html += `
+      <div style="display:flex; justify-content:center; align-items:center; gap:16px; margin-top:24px;">
+        <button class="btn btn-ghost" onclick="changePageAtivos(${currentPageAtivos - 1})" ${currentPageAtivos === 1 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Anterior</button>
+        <span style="font-size:13px; color:var(--text2); font-weight:600;">Página ${currentPageAtivos} de ${totalPages}</span>
+        <button class="btn btn-ghost" onclick="changePageAtivos(${currentPageAtivos + 1})" ${currentPageAtivos === totalPages ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Próxima</button>
+      </div>
+    `;
+  }
+
+  document.getElementById('ativosContainer').innerHTML = html;
 }
 
-function filterAtivos(f, btn) {
-  currentAtivoFilter = f;
-  document.querySelectorAll('#ativoFilters .filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+function changePageAtivos(p) {
+  currentPageAtivos = p;
   renderAtivos();
 }
 
-function filterAtivoTipo(tipo, btn) {
+function filterAtivos(f) {
+  currentAtivoFilter = f;
+  currentPageAtivos = 1;
+  renderAtivos();
+}
+
+function filterAtivoTipo(tipo) {
   currentAtivoTipoFilter = tipo;
-  document.querySelectorAll('#ativoTipoFilters .filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  currentPageAtivos = 1;
   renderAtivos();
 }
 
@@ -277,7 +301,7 @@ async function openDetalhe(id) {
 
   const fotoHtml = fotos.length
     ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
-        ${fotos.map(f => `<img src="${f.url}" style="width:90px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">`).join('')}
+        ${fotos.map(f => `<img src="${f.url}" style="width:90px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer;" onclick="openLightbox('${f.url}')">`).join('')}
        </div>`
     : `<div style="width:90px;height:70px;background:var(--bg3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:16px;color:var(--text3);"><i class="bi bi-${a.emoji || 'laptop'}"></i></div>`;
 
@@ -304,8 +328,11 @@ async function openDetalhe(id) {
     </div>
     ${a.anexo ? `<div style="margin-bottom:12px;"><a href="${a.anexo.startsWith('http') ? a.anexo : 'https://' + a.anexo}" target="_blank" class="btn btn-ghost btn-sm" style="border:1px solid var(--border);"><i class="bi bi-link-45deg" style="margin-right:6px;"></i> Acessar Nota Fiscal / Anexo</a></div>` : ''}
     ${a.obs ? `<div class="alert alert-info"><i class="bi bi-sticky" style="margin-right:6px;"></i> ${a.obs}</div>` : ''}`;
-  document.getElementById('btnEditAtivo').onclick = () => { closeModal('modalDetalheAtivo'); openNovoAtivo(id); };
-  document.getElementById('btnDeleteAtivo').onclick = () => deleteAtivo(id);
+  const btnEdit = document.getElementById('btnEditAtivo');
+  if (btnEdit) { btnEdit.style.display = ''; btnEdit.onclick = () => { closeModal('modalDetalheAtivo'); openNovoAtivo(id); }; }
+  const btnDelete = document.getElementById('btnDeleteAtivo');
+  if (btnDelete) { btnDelete.style.display = ''; btnDelete.onclick = () => deleteAtivo(id); }
+  
   document.getElementById('modalDetalheAtivo').classList.add('open');
 }
 
@@ -338,28 +365,26 @@ function _updateAtivoFilterCounts(fullList) {
 
   // ── Filtros de Tipo ──────────────────────────────────────
   const tipoFilters = [
-    { label: '<i class="bi bi-grid"></i> Todos',       value: 'todos' },
-    { label: '<i class="bi bi-laptop"></i> Notebook',  value: 'Notebook' },
-    { label: '<i class="bi bi-pc-display"></i> Desktop', value: 'Desktop' },
-    { label: '<i class="bi bi-display"></i> Monitor',  value: 'Monitor' },
-    { label: '<i class="bi bi-phone"></i> Celular',    value: 'Celular' },
-    { label: '<i class="bi bi-tablet"></i> Tablet',    value: 'Tablet' },
-    { label: '<i class="bi bi-mouse"></i> Periférico', value: 'Periférico' },
-    { label: '<i class="bi bi-hdd-stack"></i> Servidor', value: 'Servidor' },
+    { label: 'Todos os Tipos',       value: 'todos' },
+    { label: 'Notebook',  value: 'Notebook' },
+    { label: 'Desktop', value: 'Desktop' },
+    { label: 'Monitor',  value: 'Monitor' },
+    { label: 'Celular',    value: 'Celular' },
+    { label: 'Tablet',    value: 'Tablet' },
+    { label: 'Periférico', value: 'Periférico' },
+    { label: 'Servidor', value: 'Servidor' },
   ];
 
   const tipoCount = v => v === 'todos'
     ? semDedicados.length
     : fullList.filter(a => norm(a.tipo) === norm(v)).length;
 
-  const tipoContainer = document.getElementById('ativoTipoFilters');
+  const tipoContainer = document.getElementById('ativoTipoSelect');
   if (tipoContainer) {
     tipoContainer.innerHTML = tipoFilters.map(f => {
       const n = tipoCount(f.value);
-      const active = currentAtivoTipoFilter === f.value ? ' active' : '';
-      return `<button class="filter-btn${active}" onclick="filterAtivoTipo('${f.value}',this)">
-        ${f.label}<span class="filter-count">${n}</span>
-      </button>`;
+      const selected = currentAtivoTipoFilter === f.value ? ' selected' : '';
+      return `<option value="${f.value}"${selected}>${f.label} (${n})</option>`;
     }).join('');
   }
 
@@ -370,26 +395,27 @@ function _updateAtivoFilterCounts(fullList) {
     : semDedicados;
 
   const statusFilters = [
-    { label: 'Todos',       value: 'todos' },
+    { label: 'Qualquer Status',       value: 'todos' },
     { label: 'Disponível',  value: 'disponivel' },
     { label: 'Em Uso',      value: 'em uso' },
     { label: 'Manutenção',  value: 'manutencao' },
     { label: 'Estoque',     value: 'estoque' },
     { label: 'Descartado',  value: 'descartado' },
+    { label: 'Saindo para envio',  value: 'saindo para envio' },
+    { label: 'Entregue',  value: 'entregue' },
+    { label: 'Não postado ainda',  value: 'nao postado ainda' }
   ];
 
   const statusCount = v => v === 'todos'
     ? listParaStatus.length
     : listParaStatus.filter(a => norm(a.status) === norm(v)).length;
 
-  const statusContainer = document.getElementById('ativoFilters');
+  const statusContainer = document.getElementById('ativoStatusSelect');
   if (statusContainer) {
     statusContainer.innerHTML = statusFilters.map(f => {
       const n = statusCount(f.value);
-      const active = currentAtivoFilter === f.value ? ' active' : '';
-      return `<button class="filter-btn${active}" onclick="filterAtivos('${f.value}',this)">
-        ${f.label}<span class="filter-count">${n}</span>
-      </button>`;
+      const selected = currentAtivoFilter === f.value ? ' selected' : '';
+      return `<option value="${f.value}"${selected}>${f.label} (${n})</option>`;
     }).join('');
   }
 }

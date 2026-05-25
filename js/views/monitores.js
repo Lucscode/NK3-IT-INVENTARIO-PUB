@@ -1,5 +1,7 @@
 // ===================== MONITORES =====================
 let currentMonitorFilter = 'todos';
+let currentPageMonitores = 1;
+const MONITORES_PER_PAGE = 20;
 let editingMonitorId = null;
 
 async function renderMonitores() {
@@ -25,7 +27,7 @@ async function renderMonitores() {
   // Atualizar badges de contagem nos filtros
   const _nm = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const monFilters = [
-    { label: 'Todos', value: 'todos' },
+    { label: 'Todos os Status', value: 'todos' },
     { label: 'Em Uso', value: 'em uso' },
     { label: 'Estoque', value: 'estoque' },
     { label: 'Quebrado', value: 'quebrado' },
@@ -34,14 +36,20 @@ async function renderMonitores() {
   if (monContainer) {
     monContainer.innerHTML = monFilters.map(f => {
       const n = f.value === 'todos' ? fullMonList.length : fullMonList.filter(a => _nm(a.status) === _nm(f.value)).length;
-      const active = currentMonitorFilter === f.value ? ' active' : '';
-      return `<button class="filter-btn${active}" onclick="filterMonitores('${f.value}',this)">${f.label}<span class="filter-count">${n}</span></button>`;
+      const selected = currentMonitorFilter === f.value ? ' selected' : '';
+      return `<option value="${f.value}"${selected}>${f.label} (${n})</option>`;
     }).join('');
   }
 
-  document.getElementById('monitoresContainer').innerHTML = `<div class="card"><div class="table-wrap"><table>
+  const totalItems = list.length;
+  const totalPages = Math.ceil(totalItems / MONITORES_PER_PAGE) || 1;
+  if (currentPageMonitores > totalPages) currentPageMonitores = totalPages;
+  const startIdx = (currentPageMonitores - 1) * MONITORES_PER_PAGE;
+  const pagedList = list.slice(startIdx, startIdx + MONITORES_PER_PAGE);
+
+  let html = `<div class="card"><div class="table-wrap"><table>
     <thead><tr><th>Monitor</th><th>Patrimônio</th><th>Status</th><th>Tela</th><th>Colaborador</th><th>Localização</th><th>Ações</th></tr></thead>
-    <tbody>${list.map(a => `<tr>
+    <tbody>${pagedList.map(a => `<tr>
       <td><span style="margin-right:8px;font-size:16px;color:var(--accent);"><i class="bi bi-display"></i></span><b>${a.nome}</b></td>
       <td><span class="text-mono" style="font-size:11px;color:var(--text2);">${a.patrimonio}</span></td>
       <td>${statusBadge(a.status)}</td>
@@ -51,12 +59,28 @@ async function renderMonitores() {
       <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetalheMonitor('${a.id}')">Ver</button></td>
     </tr>`).join('') || `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text2);">Nenhum monitor encontrado</td></tr>`}</tbody>
   </table></div></div>`;
+
+  if (totalPages > 1) {
+    html += `
+      <div style="display:flex; justify-content:center; align-items:center; gap:16px; margin-top:24px;">
+        <button class="btn btn-ghost" onclick="changePageMonitores(${currentPageMonitores - 1})" ${currentPageMonitores === 1 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Anterior</button>
+        <span style="font-size:13px; color:var(--text2); font-weight:600;">Página ${currentPageMonitores} de ${totalPages}</span>
+        <button class="btn btn-ghost" onclick="changePageMonitores(${currentPageMonitores + 1})" ${currentPageMonitores === totalPages ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Próxima</button>
+      </div>
+    `;
+  }
+
+  document.getElementById('monitoresContainer').innerHTML = html;
 }
 
-function filterMonitores(f, btn) {
+function changePageMonitores(p) {
+  currentPageMonitores = p;
+  renderMonitores();
+}
+
+function filterMonitores(f) {
   currentMonitorFilter = f;
-  document.querySelectorAll('#monitorFilters .filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  currentPageMonitores = 1;
   renderMonitores();
 }
 
@@ -165,8 +189,10 @@ async function openDetalheMonitor(id) {
     </div>
     ${a.obs ? `<div class="alert alert-info"><i class="bi bi-sticky" style="margin-right:6px;"></i> ${a.obs}</div>` : ''}`;
   
-  document.getElementById('btnEditAtivo').onclick = () => { closeModal('modalDetalheAtivo'); openNovoMonitor(id); };
-  document.getElementById('btnDeleteAtivo').onclick = () => deleteMonitor(id);
+  const btnEdit = document.getElementById('btnEditAtivo');
+  if (btnEdit) { btnEdit.style.display = ''; btnEdit.onclick = () => { closeModal('modalDetalheAtivo'); openNovoMonitor(id); }; }
+  const btnDelete = document.getElementById('btnDeleteAtivo');
+  if (btnDelete) { btnDelete.style.display = ''; btnDelete.onclick = () => deleteMonitor(id); }
   openModal('modalDetalheAtivo');
 }
 

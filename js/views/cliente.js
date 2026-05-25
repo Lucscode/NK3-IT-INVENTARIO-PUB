@@ -1,4 +1,6 @@
 // ===================== ÁREA DO CLIENTE =====================
+let currentPageCliente = 1;
+const CLIENTE_PER_PAGE = 20;
 function clientTab(tab, el) {
   document.querySelectorAll('#page-area-cliente .tab').forEach(t => t.classList.remove('active'));
   if (el) el.classList.add('active');
@@ -40,6 +42,8 @@ async function renderClientTab(tab) {
             </div>
           </div>
           <div class="form-group"><label>Bairro *</label><input type="text" id="solBairro" placeholder="Bairro"></div>
+          <div class="form-group"><label>Cidade *</label><input type="text" id="solCidade" placeholder="Cidade"></div>
+          <div class="form-group"><label>UF *</label><input type="text" id="solUf" placeholder="UF" maxlength="2" style="text-transform:uppercase;"></div>
           <div class="form-group span2"><label>Rua *</label><input type="text" id="solRua" placeholder="Rua / Avenida"></div>
           <div class="form-group"><label>Número *</label><input type="text" id="solNumero" placeholder="123"></div>
           <div class="form-group"><label>Complemento</label><input type="text" id="solComplemento" placeholder="Apto, bloco, etc."></div>
@@ -62,6 +66,43 @@ async function renderClientTab(tab) {
 
         <div style="margin-top:24px;">
           <button class="btn btn-primary" onclick="enviarSolicitacao()" style="width: 100%; justify-content: center; padding: 12px; font-size: 14px; border-radius: 8px;">Enviar Solicitação</button>
+        </div>
+      </div>`;
+
+  } else if (tab === 'minhas_solicitacoes') {
+    const list = await dbGetSolicitacoes();
+    
+    c.innerHTML = `
+      <div class="card">
+        <div class="section-title" style="margin-bottom:14px;">Acompanhamento de Solicitações</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Colaborador</th>
+                <th>Data Início</th>
+                <th>Kit</th>
+                <th>Status</th>
+                <th>Rastreio</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${list.map(s => `<tr>
+                <td><b>${s.nome || s.colaborador || s.colab || '—'}</b></td>
+                <td>${fmtDate(s.inicio)}</td>
+                <td>${s.kit ? '<span class="badge badge-green">Sim</span>' : '<span class="badge badge-gray">Não</span>'}</td>
+                <td><span class="badge badge-${s.status === 'pendente' ? 'orange' : s.status === 'em andamento' ? 'blue' : s.status === 'enviado' ? 'green' : 'gray'}">${s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : '—'}</span></td>
+                <td>
+                  ${s.rastreio
+                    ? `<a href="https://www.linkcorreios.com.br/${s.rastreio}" target="_blank"
+                        style="color:var(--accent);font-size:13px;text-decoration:underline;display:flex;align-items:center;gap:4px;">
+                        <i class="bi bi-box-seam"></i> ${s.rastreio}
+                       </a>`
+                    : '<span style="color:var(--text3);font-size:12px;">Aguardando...</span>'}
+                </td>
+              </tr>`).join('') || `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text2);">Nenhuma solicitação encontrada</td></tr>`}
+            </tbody>
+          </table>
         </div>
       </div>`;
 
@@ -104,16 +145,16 @@ async function renderClientTab(tab) {
         <div style="position:relative;flex:1;min-width:180px;">
           <i class="bi bi-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;"></i>
           <input type="text" id="clientMaqSearch" placeholder="Buscar por nome ou patrimônio..."
-            oninput="filtrarMaquinasCliente()"
+            oninput="filtrarMaquinasCliente(true)"
             style="width:100%;padding:8px 10px 8px 32px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;box-sizing:border-box;">
         </div>
-        <select id="clientMaqTipo" onchange="filtrarMaquinasCliente()"
-          style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;cursor:pointer;">
+        <select id="clientMaqTipo" onchange="filtrarMaquinasCliente(true)"
+          style="width:auto;flex:1;min-width:140px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;cursor:pointer;">
           <option value="">Todos os Tipos</option>
           ${tipos.map(t => `<option value="${t}">${t}</option>`).join('')}
         </select>
-        <select id="clientMaqStatus" onchange="filtrarMaquinasCliente()"
-          style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;cursor:pointer;">
+        <select id="clientMaqStatus" onchange="filtrarMaquinasCliente(true)"
+          style="width:auto;flex:1;min-width:140px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;cursor:pointer;">
           <option value="">Qualquer Status</option>
           ${statuses.map(s => `<option value="${s}">${statusLabel[s]||s}</option>`).join('')}
         </select>
@@ -127,7 +168,8 @@ async function renderClientTab(tab) {
   }
 }
 
-function filtrarMaquinasCliente() {
+function filtrarMaquinasCliente(resetPage = true) {
+  if (resetPage) currentPageCliente = 1;
   const grid    = document.getElementById('clientMaqGrid');
   const search  = (document.getElementById('clientMaqSearch')?.value || '').toLowerCase();
   const tipo    = document.getElementById('clientMaqTipo')?.value || '';
@@ -143,9 +185,18 @@ function filtrarMaquinasCliente() {
 
   document.getElementById('clientMaqCount').textContent = `${filtrados.length} equipamento${filtrados.length !== 1 ? 's' : ''}`;
 
-  grid.innerHTML = filtrados.map(a => `
-    <div class="asset-card" style="cursor:default;">
-      <div class="asset-card-img"><div class="asset-emoji-fallback"><i class="bi bi-${a.emoji||'laptop'}"></i></div>
+  const totalItems = filtrados.length;
+  const totalPages = Math.ceil(totalItems / CLIENTE_PER_PAGE) || 1;
+  if (currentPageCliente > totalPages) currentPageCliente = totalPages;
+  const startIdx = (currentPageCliente - 1) * CLIENTE_PER_PAGE;
+  const pagedList = filtrados.slice(startIdx, startIdx + CLIENTE_PER_PAGE);
+
+  let html = pagedList.map(a => `
+    <div class="asset-card" onclick="openDetalheCliente('${a.id}')" style="cursor:pointer;">
+      <div class="asset-card-img">
+        ${a.ativo_fotos && a.ativo_fotos.length > 0 
+           ? `<img src="${a.ativo_fotos[0].url}" alt="foto" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="asset-emoji-fallback" style="display:none;"><i class="bi bi-${a.emoji||'laptop'}"></i></div>`
+           : `<div class="asset-emoji-fallback"><i class="bi bi-${a.emoji||'laptop'}"></i></div>`}
         <div class="badge-overlay">${statusBadge(a.status)}</div>
       </div>
       <div class="asset-card-body">
@@ -154,6 +205,12 @@ function filtrarMaquinasCliente() {
         <div class="asset-card-info">
           <div class="asset-card-info-row"><i class="bi bi-person"></i> <span>${a.colab||'Disponível'}</span></div>
         </div>
+        ${a.status === 'disponivel' ? `
+        <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
+           <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center;" onclick="event.stopPropagation();abrirIndicarMaquina('${a.nome}', '${a.patrimonio}')">
+             <i class="bi bi-person-plus"></i> Indicar Colaborador
+           </button>
+        </div>` : ''}
       </div>
     </div>`).join('') || `
     <div class="empty" style="grid-column:1/-1;">
@@ -161,6 +218,65 @@ function filtrarMaquinasCliente() {
       <div class="empty-title">Nenhum equipamento encontrado</div>
       <div class="empty-sub">Tente ajustar os filtros</div>
     </div>`;
+
+  if (totalPages > 1) {
+    html += `
+      <div style="grid-column:1/-1; display:flex; justify-content:center; align-items:center; gap:16px; margin-top:24px;">
+        <button class="btn btn-ghost" onclick="changePageCliente(${currentPageCliente - 1})" ${currentPageCliente === 1 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Anterior</button>
+        <span style="font-size:13px; color:var(--text2); font-weight:600;">Página ${currentPageCliente} de ${totalPages}</span>
+        <button class="btn btn-ghost" onclick="changePageCliente(${currentPageCliente + 1})" ${currentPageCliente === totalPages ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Próxima</button>
+      </div>
+    `;
+  }
+
+  grid.innerHTML = html;
+}
+
+function changePageCliente(p) {
+  currentPageCliente = p;
+  filtrarMaquinasCliente(false);
+}
+
+async function openDetalheCliente(id) {
+  const a = await dbGetAtivoById(id);
+  if (!a) return;
+  const fotos = await dbGetFotos(id);
+
+  const fotoHtml = fotos.length
+    ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        ${fotos.map(f => `<img src="${f.url}" style="width:90px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer;" onclick="openLightbox('${f.url}')">`).join('')}
+       </div>`
+    : `<div style="width:90px;height:70px;background:var(--bg3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:16px;color:var(--text3);"><i class="bi bi-${a.emoji || 'laptop'}"></i></div>`;
+
+  document.getElementById('modalDetalheBody').innerHTML = `
+    <div style="display:flex;gap:20px;margin-bottom:20px;align-items:flex-start;">
+      ${fotoHtml}
+      <div>
+        <div style="font-size:20px;font-weight:800;margin-bottom:4px;">${a.nome}</div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--text2);margin-bottom:8px;">
+          ${a.patrimonio} • ${a.tipo || ''}${a.marca ? ` • ${a.marca}` : ''}${a.modelo ? ` ${a.modelo}` : ''}
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">${statusBadge(a.status)}</div>
+      </div>
+    </div>
+    <div class="detail-grid" style="margin-bottom:20px;">
+      ${a.proc ? `<div class="detail-item"><div class="detail-label">Processador</div><div class="detail-value">${a.proc}</div></div>` : ''}
+      ${a.ram ? `<div class="detail-item"><div class="detail-label">RAM</div><div class="detail-value">${a.ram}</div></div>` : ''}
+      ${a.disco ? `<div class="detail-item"><div class="detail-label">Armazenamento</div><div class="detail-value">${a.disco}</div></div>` : ''}
+      ${a.tela ? `<div class="detail-item"><div class="detail-label">Tamanho da Tela</div><div class="detail-value">${a.tela}</div></div>` : ''}
+      ${a.so ? `<div class="detail-item"><div class="detail-label">Sistema Operacional</div><div class="detail-value">${a.so}</div></div>` : ''}
+      ${a.serie ? `<div class="detail-item"><div class="detail-label">Nº de Série</div><div class="detail-value text-mono">${a.serie}</div></div>` : ''}
+      ${a.localizacao ? `<div class="detail-item"><div class="detail-label">Localização</div><div class="detail-value">${a.localizacao}</div></div>` : ''}
+      ${a.colab ? `<div class="detail-item"><div class="detail-label">Colaborador</div><div class="detail-value">${a.colab}</div></div>` : ''}
+    </div>
+    ${a.obs ? `<div class="alert alert-info"><i class="bi bi-sticky" style="margin-right:6px;"></i> ${a.obs}</div>` : ''}`;
+
+  const btnEdit = document.getElementById('btnEditAtivo');
+  if (btnEdit) btnEdit.style.display = 'none';
+  const btnDelete = document.getElementById('btnDeleteAtivo');
+  if (btnDelete) btnDelete.style.display = 'none';
+
+  openModal('modalDetalheAtivo');
 }
 
 async function enviarSolicitacao() {
@@ -170,12 +286,17 @@ async function enviarSolicitacao() {
   const inicio = document.getElementById('solInicio').value;
   const cep = document.getElementById('solCep').value.trim();
   const bairro = document.getElementById('solBairro').value.trim();
+  const cidade = document.getElementById('solCidade').value.trim();
+  const uf = document.getElementById('solUf').value.trim();
   const rua = document.getElementById('solRua').value.trim();
   const numero = document.getElementById('solNumero').value.trim();
   
-  if (!nome || !cpf || !inicio || !cep || !bairro || !rua || !numero) { 
+  if (!nome || !cpf || !inicio || !cep || !bairro || !cidade || !uf || !rua || !numero) { 
     notify('Preencha os campos obrigatórios (*)', 'error'); return; 
   }
+
+  const comp = document.getElementById('solComplemento').value.trim();
+  const complementoStr = comp ? `${comp} (${cidade}/${uf.toUpperCase()})` : `${cidade}/${uf.toUpperCase()}`;
 
   await dbCreateSolicitacao({
     colaborador: nome,
@@ -186,7 +307,7 @@ async function enviarSolicitacao() {
     bairro,
     rua,
     numero,
-    complemento: document.getElementById('solComplemento').value.trim(),
+    complemento: complementoStr,
     kit: document.getElementById('solKit').checked,
     obs: document.getElementById('solObs').value.trim(),
     status: 'pendente'
@@ -219,6 +340,8 @@ async function buscarCep(cep) {
 
     const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
     set('solBairro', data.bairro);
+    set('solCidade', data.localidade);
+    set('solUf',     data.uf);
     set('solRua',    data.logradouro);
 
     // Foca no campo número após preencher
@@ -229,4 +352,43 @@ async function buscarCep(cep) {
     if (spinner) spinner.style.display = 'none';
     if (erro)    erro.style.display = '';
   }
+}
+
+function abrirIndicarMaquina(nome, patrimonio) {
+  document.getElementById('indicarNomeMq').textContent = nome;
+  document.getElementById('indicarPatriMq').textContent = patrimonio;
+  document.getElementById('indicarNomeHidden').value = nome;
+  document.getElementById('indicarPatrimonioHidden').value = patrimonio;
+  
+  document.getElementById('indicarNomeColab').value = '';
+  document.getElementById('indicarDataInicio').value = '';
+  document.getElementById('indicarObs').value = '';
+  
+  openModal('modalIndicarMaquina');
+}
+
+async function enviarIndicacaoMaquina() {
+  const nomeColab = document.getElementById('indicarNomeColab').value.trim();
+  const dataInicio = document.getElementById('indicarDataInicio').value;
+  const obs = document.getElementById('indicarObs').value.trim();
+  const nomeMq = document.getElementById('indicarNomeHidden').value;
+  const patriMq = document.getElementById('indicarPatrimonioHidden').value;
+  
+  if (!nomeColab) {
+    notify('Preencha o nome do colaborador (*)', 'error');
+    return;
+  }
+  
+  const textObs = `[INDICAÇÃO DE MÁQUINA]\nMáquina selecionada: ${nomeMq} (Patrimônio: ${patriMq})\n\n${obs}`;
+  
+  await dbCreateSolicitacao({
+    colaborador: nomeColab,
+    inicio: dataInicio || null,
+    obs: textObs,
+    status: 'pendente'
+  });
+  
+  if (typeof updatePendBadge === 'function') await updatePendBadge();
+  notify('Indicação enviada com sucesso!');
+  closeModal('modalIndicarMaquina');
 }
