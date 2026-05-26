@@ -1,4 +1,7 @@
 // ===================== COLABORADORES =====================
+let currentPageColab = 1;
+const COLAB_PER_PAGE = 20;
+
 async function openNovoColab(id = null) {
   editingColabId = id;
   document.getElementById('modalColabTitle').textContent = id ? 'Editar Colaborador' : 'Novo Colaborador';
@@ -64,7 +67,13 @@ async function renderColabs() {
   const sub = document.getElementById('pageSub');
   if (sub) sub.textContent = `${colabs.length} colaboradores cadastrados`;
 
-  document.getElementById('colabTableBody').innerHTML = list.map(c => {
+  const totalItems = list.length;
+  const totalPages = Math.ceil(totalItems / COLAB_PER_PAGE) || 1;
+  if (currentPageColab > totalPages) currentPageColab = totalPages;
+  const startIdx = (currentPageColab - 1) * COLAB_PER_PAGE;
+  const pagedList = list.slice(startIdx, startIdx + COLAB_PER_PAGE);
+
+  document.getElementById('colabTableBody').innerHTML = pagedList.map(c => {
     const ativos = _cacheAtivos.filter(a => a.colab === c.nome).length;
     const deptColor = c.dept ? '#3b82f6' : 'var(--text3)';
     return `<tr>
@@ -99,4 +108,25 @@ async function renderColabs() {
       </td>
     </tr>`;
   }).join('') || `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text2);">Nenhum colaborador encontrado</td></tr>`;
+
+  // Adicionar paginação abaixo da tabela (temos que injetar fora do tbody ou dentro do container, mas a função injeta direto no tbody)
+  // Vou usar o parentNode do table ou adicionar uma linha especial
+  if (totalPages > 1) {
+    document.getElementById('colabTableBody').insertAdjacentHTML('beforeend', `
+      <tr>
+        <td colspan="6" style="padding: 16px 0; border-bottom: none;">
+          <div style="display:flex; justify-content:center; align-items:center; gap:16px;">
+            <button class="btn btn-ghost" onclick="changePageColab(${currentPageColab - 1})" ${currentPageColab === 1 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Anterior</button>
+            <span style="font-size:13px; color:var(--text2); font-weight:600;">Página ${currentPageColab} de ${totalPages}</span>
+            <button class="btn btn-ghost" onclick="changePageColab(${currentPageColab + 1})" ${currentPageColab === totalPages ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Próxima</button>
+          </div>
+        </td>
+      </tr>
+    `);
+  }
+}
+
+function changePageColab(p) {
+  currentPageColab = p;
+  renderColabs();
 }

@@ -51,6 +51,12 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 // ===================== GLOBAL SEARCH =====================
 function handleSearch(val) {
   const page = document.querySelector('.page.active').id.replace('page-', '');
+  
+  if (typeof currentPageAtivos !== 'undefined') currentPageAtivos = 1;
+  if (typeof currentPageMonitores !== 'undefined') currentPageMonitores = 1;
+  if (typeof currentPageCelulares !== 'undefined') currentPageCelulares = 1;
+  if (typeof currentPageColab !== 'undefined') currentPageColab = 1;
+
   if (page === 'dashboard') renderDashboard();
   if (page === 'ativos') renderAtivos();
   if (page === 'monitores') renderMonitores();
