@@ -274,3 +274,10 @@ async function dbUpdateKitStatus(id, status) {
     .eq('id', id);
   if (error) _throw('Erro ao atualizar status do kit', error);
 }
+
+async function dbUpdateKitRastreio(id, rastreio) {
+  const { error } = await sb.from('kit_historico')
+    .update({ rastreio })
+    .eq('id', id);
+  if (error) _throw('Erro ao atualizar rastreio do kit', error);
+}

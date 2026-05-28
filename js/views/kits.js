@@ -40,7 +40,7 @@ async function renderKitTab() {
           <div class="section-title"><i class="bi bi-clock-history"></i> Histórico de Saídas</div>
         </div>
         <div class="table-wrap"><table>
-          <thead><tr><th>Colaborador</th><th>Qtd Kits</th><th>Data</th><th>Obs</th><th>Status</th><th>Ações</th></tr></thead>
+          <thead><tr><th>Colaborador</th><th>Qtd Kits</th><th>Data</th><th>Obs</th><th>Rastreio</th><th>Status</th><th>Ações</th></tr></thead>
           <tbody>${hist.length === 0
         ? `<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px;">Nenhuma saída registrada ainda.</td></tr>`
         : hist.map(h => `<tr>
@@ -48,6 +48,14 @@ async function renderKitTab() {
             <td><span class="badge badge-blue">${h.quantidade}</span></td>
             <td>${fmtDate(h.data)}</td>
             <td style="font-size:12px;color:var(--text2);">${h.obs || '—'}</td>
+            <td>
+              ${h.cancelado 
+                ? `<span style="color:var(--text3);font-size:12px;">${h.rastreio || '—'}</span>` 
+                : `<input type="text" placeholder="Código..." value="${h.rastreio || ''}" 
+                    onchange="updateKitRastreio('${h.id}', this.value)"
+                    style="width:110px; padding:4px 8px; font-size:12px; border:1px solid var(--border); border-radius:6px; background:var(--bg3); color:var(--text); font-family:var(--mono);" />`
+              }
+            </td>
             <td>
               ${h.cancelado
             ? '<span class="badge badge-red"><span class="dot"></span>Cancelado</span>'
@@ -114,6 +122,15 @@ async function updateKitStatus(id, status) {
   if (error) { notify('Erro ao atualizar status', 'error'); return; }
   notify('Status atualizado!');
   renderKitTab();
+}
+
+async function updateKitRastreio(id, rastreio) {
+  try {
+    await dbUpdateKitRastreio(id, rastreio);
+    notify('Rastreio atualizado!');
+  } catch (err) {
+    notify('Erro ao salvar rastreio. Verifique se a coluna rastreio existe.', 'error');
+  }
 }
 
 async function openKitEstoque() {
