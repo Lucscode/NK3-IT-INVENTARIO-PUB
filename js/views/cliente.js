@@ -313,6 +313,31 @@ async function enviarSolicitacao() {
     status: 'pendente'
   });
   
+  // ─── DISPARO DE EMAIL (EmailJS) ──────────────────────────
+  try {
+    const SERVICE_ID = 'service_4cvr6ms';
+    const TEMPLATE_ID = 'template_z2641sb';
+    
+    // Dispara o e-mail em background sem travar a tela
+    emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+      colaborador: nome,
+      cpf: cpf,
+      email: email,
+      inicio: inicio,
+      endereco: `${rua}, ${numero} - ${bairro}, ${cidade}/${uf.toUpperCase()} (CEP: ${cep}) - ${comp}`,
+      kit: document.getElementById('solKit').checked ? 'Sim' : 'Não',
+      obs: document.getElementById('solObs').value.trim()
+    }, 'xE5RrvIe6hERi2CTp').then(() => {
+      console.log('E-mail de notificação enviado para o suporte!');
+    }).catch(err => {
+      console.error('Erro ao enviar e-mail via EmailJS:', err);
+      alert('Ocorreu um erro no disparo de E-mail (EmailJS). Detalhe: ' + (err.text || err.message || JSON.stringify(err)));
+    });
+  } catch (err) {
+    console.error('Erro ao inicializar EmailJS:', err);
+  }
+  // ───────────────────────────────────────────────────────
+
   await updatePendBadge();
   notify('Solicitação enviada com sucesso!');
   renderClientTab('solicitar');
