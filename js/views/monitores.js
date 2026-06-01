@@ -48,16 +48,17 @@ async function renderMonitores() {
   const pagedList = list.slice(startIdx, startIdx + MONITORES_PER_PAGE);
 
   let html = `<div class="card"><div class="table-wrap"><table>
-    <thead><tr><th>Monitor</th><th>Patrimônio</th><th>Status</th><th>Tela</th><th>Colaborador</th><th>Localização</th><th>Ações</th></tr></thead>
+    <thead><tr><th>Status</th><th>Colaborador</th><th>Marca</th><th>Modelo</th><th>Local</th><th>Tamanho de Tela</th><th>S/N</th><th>Ações</th></tr></thead>
     <tbody>${pagedList.map(a => `<tr>
-      <td><span style="margin-right:8px;font-size:16px;color:var(--accent);"><i class="bi bi-display"></i></span><b>${a.nome}</b></td>
-      <td><span class="text-mono" style="font-size:11px;color:var(--text2);">${a.patrimonio}</span></td>
       <td>${statusBadge(a.status)}</td>
-      <td><span style="font-size:12px;">${a.tela || '—'}</span></td>
       <td><span style="font-size:12px;">${a.colab || '—'}</span></td>
+      <td><span style="margin-right:8px;font-size:14px;color:var(--accent);"><i class="bi bi-display"></i></span><span style="font-size:12px;font-weight:bold;">${a.marca || '—'}</span></td>
+      <td><span style="font-size:12px;">${a.modelo || '—'}</span></td>
       <td><span style="font-size:12px;">${a.localizacao || '—'}</span></td>
+      <td><span style="font-size:12px;">${a.tela || '—'}</span></td>
+      <td><span class="text-mono" style="font-size:11px;">${a.serie || '—'}</span></td>
       <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetalheMonitor('${a.id}')">Ver</button></td>
-    </tr>`).join('') || `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text2);">Nenhum monitor encontrado</td></tr>`}</tbody>
+    </tr>`).join('') || `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text2);">Nenhum monitor encontrado</td></tr>`}</tbody>
   </table></div></div>`;
 
   if (totalPages > 1) {
@@ -213,6 +214,172 @@ async function deleteMonitor(id) {
   await dbDeleteAtivo(id);
   notify('Monitor excluído');
   closeModal('modalDetalheAtivo');
+  renderMonitores();
+  updateStats();
+}
+
+// ===================== IMPORTAR CSV MONITORES =====================
+
+let _monitorCsvData = [];
+
+function openImportMonitorModal() {
+  _monitorCsvData = [];
+  document.getElementById('monCsvFile').value = '';
+  document.getElementById('monCsvPreview').innerHTML = '';
+  document.getElementById('btnImportMonitorConfirm').style.display = 'none';
+  document.getElementById('monCsvUploadZone').style.display = '';
+  openModal('modalImportMonitor');
+}
+
+function _normalizeMonHeader(h) {
+  return h.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+function _mapMonitorRow(headers, values) {
+  const get = (...keys) => {
+    for (const k of keys) {
+      const idx = headers.indexOf(_normalizeMonHeader(k));
+      if (idx !== -1) return (values[idx] || '').trim();
+    }
+    return '';
+  };
+
+  const statusRaw = get('Status', 'status').toLowerCase();
+  const statusMap = {
+    'disponivel': 'estoque', 'disponível': 'estoque', 'estoque': 'estoque',
+    'em uso': 'em uso', 'uso': 'em uso',
+    'manutencao': 'manutencao', 'manutenção': 'manutencao', 'manutençao': 'manutencao',
+    'quebrado/defeito': 'quebrado', 'quebrado': 'quebrado', 'defeito': 'quebrado'
+  };
+  const status = statusMap[statusRaw] || 'estoque';
+
+  const colab = get('Colaborador', 'colaborador');
+  const marca = get('Marca', 'marca');
+  const modelo = get('Modelo', 'modelo');
+  const localizacao = get('Local', 'localização', 'localizacao', 'local');
+  const tela = get('Tamanho de Tela', 'tamanho de tela', 'tela');
+  const serie = get('S/N', 's/n', 'sn', 'serie', 'série');
+  const obs = get('Observação', 'observacao', 'observações', 'obs');
+
+  // Nome e Patrimônio gerados dinamicamente baseados na planilha
+  const nome = (marca && modelo) ? `Monitor ${marca} ${modelo}` : (marca ? `Monitor ${marca}` : 'Monitor Genérico');
+  const patrimonio = serie || `MON-${Math.floor(10000 + Math.random() * 90000)}`;
+
+  if (!marca && !modelo && !serie) return null; // Linha inválida
+
+  return {
+    nome, patrimonio, marca, modelo, serie, tela, colab, status, localizacao, obs,
+    tipo: 'Monitor', emoji: 'display'
+  };
+}
+
+function _parseMonitorCSV(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 2) return { headers: [], rows: [] };
+  const delim = lines[0].includes(';') ? ';' : ',';
+
+  const parseRow = line => {
+    const result = [];
+    let cur = '', inQ = false;
+    for (const ch of line) {
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === delim && !inQ) { result.push(cur.trim()); cur = ''; }
+      else { cur += ch; }
+    }
+    result.push(cur.trim());
+    return result;
+  };
+
+  const rawHeaders = parseRow(lines[0]).map(_normalizeMonHeader);
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const values = parseRow(lines[i]);
+    const obj = _mapMonitorRow(rawHeaders, values);
+    if (obj) rows.push(obj);
+  }
+  return { headers: rawHeaders, rows };
+}
+
+function handleMonitorCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const { rows } = _parseMonitorCSV(e.target.result);
+    _monitorCsvData = rows;
+
+    const preview = document.getElementById('monCsvPreview');
+    const confirm = document.getElementById('btnImportMonitorConfirm');
+
+    if (!rows.length) {
+      preview.innerHTML = `<div class="alert" style="background:var(--danger-bg,#3a1a1a);color:#f87171;border:1px solid #7f1d1d;">
+        <i class="bi bi-exclamation-triangle-fill"></i> Nenhuma linha válida encontrada. Certifique-se de que o CSV tem as colunas corretas.
+      </div>`;
+      confirm.style.display = 'none';
+      return;
+    }
+
+    document.getElementById('monCsvUploadZone').style.display = 'none';
+
+    preview.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <span style="font-weight:700;font-size:15px;"><i class="bi bi-check-circle-fill" style="color:var(--success,#4ade80);margin-right:6px;"></i>${rows.length} monitor(es) prontos para importar</span>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('monCsvUploadZone').style.display='';document.getElementById('monCsvPreview').innerHTML='';document.getElementById('btnImportMonitorConfirm').style.display='none';document.getElementById('monCsvFile').value='';">
+          <i class="bi bi-arrow-counterclockwise"></i> Trocar arquivo
+        </button>
+      </div>
+      <div class="table-wrap" style="max-height:280px;overflow-y:auto;">
+        <table>
+          <thead><tr><th>Status</th><th>Colaborador</th><th>Marca</th><th>Modelo</th><th>Local</th><th>Tela</th><th>S/N</th></tr></thead>
+          <tbody>
+            ${rows.map(r => `<tr>
+              <td>${statusBadge(r.status)}</td>
+              <td>${r.colab || '—'}</td>
+              <td>${r.marca || '—'}</td>
+              <td>${r.modelo || '—'}</td>
+              <td>${r.localizacao || '—'}</td>
+              <td>${r.tela || '—'}</td>
+              <td class="text-mono" style="font-size:11px;">${r.serie || '—'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+    confirm.style.display = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+async function confirmMonitorImport() {
+  if (!_monitorCsvData.length) return;
+
+  const btn = document.getElementById('btnImportMonitorConfirm');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Importando...';
+
+  let ok = 0, err = 0;
+  for (const payload of _monitorCsvData) {
+    try {
+      const created = await dbCreateAtivo(payload);
+      if (created) {
+        ok++;
+        if (payload.colab && payload.status === 'em uso') {
+          await dbAddHistorico({
+            ativo_id: created.id, ativo_nome: created.nome,
+            colab: payload.colab, atribuido: new Date().toISOString().split('T')[0]
+          });
+        }
+      } else { err++; }
+    } catch (e) { err++; console.error('Erro ao importar monitor:', e); }
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="bi bi-cloud-upload"></i> Importar Monitores';
+
+  closeModal('modalImportMonitor');
+  notify(`${ok} monitor(es) importado(s)${err ? ` • ${err} erro(s)` : ''}`, err ? 'error' : 'success');
   renderMonitores();
   updateStats();
 }

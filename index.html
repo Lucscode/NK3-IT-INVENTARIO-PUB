@@ -287,6 +287,7 @@
               </div>
             </div>
             <div class="toolbar-right">
+              <button class="btn btn-ghost btn-sm" onclick="openImportMonitorModal()"><i class="bi bi-upload"></i> Importar CSV</button>
               <button class="btn btn-primary btn-sm" onclick="openNovoMonitor()"><i class="bi bi-plus-lg"></i> Novo
                 Monitor</button>
             </div>
@@ -952,6 +953,43 @@
         <button class="btn btn-primary" id="btnImportCelularConfirm" onclick="confirmCelularImport()"
           style="display:none;">
           <i class="bi bi-cloud-upload"></i> Importar Celulares
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: IMPORTAR CSV MONITORES -->
+  <div class="modal-overlay" id="modalImportMonitor">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <div class="modal-title"><i class="bi bi-display" style="margin-right:8px;"></i>Importar Monitores via CSV</div>
+        <button class="modal-close" onclick="closeModal('modalImportMonitor')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info" style="margin-bottom:16px;display:flex;gap:10px;align-items:flex-start;">
+          <i class="bi bi-info-circle-fill" style="margin-top:2px;flex-shrink:0;"></i>
+          <div>
+            <div style="font-weight:600;margin-bottom:6px;">Colunas esperadas no CSV:</div>
+            <code
+              style="font-size:11px;color:var(--text2);line-height:1.8;">Status, Colaborador, Marca, Modelo, Local, Tamanho de Tela, S/N, Observação</code>
+          </div>
+        </div>
+
+        <div id="monCsvUploadZone" class="upload-zone" onclick="document.getElementById('monCsvFile').click()"
+          style="margin-bottom:16px;">
+          <div class="upload-zone-icon"><i class="bi bi-file-earmark-spreadsheet"></i></div>
+          <div style="font-weight:600;margin-bottom:4px;">Clique para selecionar o CSV</div>
+          <div style="font-size:12px;color:var(--text2);">ou arraste o arquivo aqui</div>
+        </div>
+        <input type="file" id="monCsvFile" accept=".csv" style="display:none;" onchange="handleMonitorCSV(this)">
+
+        <div id="monCsvPreview"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalImportMonitor')">Cancelar</button>
+        <button class="btn btn-primary" id="btnImportMonitorConfirm" onclick="confirmMonitorImport()"
+          style="display:none;">
+          <i class="bi bi-cloud-upload"></i> Importar Monitores
         </button>
       </div>
     </div>
