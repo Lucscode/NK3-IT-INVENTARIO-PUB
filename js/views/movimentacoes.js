@@ -21,6 +21,7 @@ async function renderMovimentacoes() {
   }
 
   toggleMovimentacaoTipo();
+  await renderMovimentacoesHistory();
 }
 
 function toggleMovimentacaoTipo() {
@@ -115,6 +116,7 @@ async function registrarMovimentacao() {
     
     // Recarregar os dados para manter o cache atualizado
     await renderMovimentacoes();
+    await renderMovimentacoesHistory();
 
   } catch (error) {
     notify(`Erro ao registrar movimentação: ${error.message || error}`, 'error');
@@ -122,3 +124,60 @@ async function registrarMovimentacao() {
     if (btn) btn.disabled = false;
   }
 }
+
+async function renderMovimentacoesHistory() {
+  const container = document.getElementById('movimentacoesHistoryTable');
+  if (!container) return;
+  container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text2);">Carregando histórico...</div>';
+
+  try {
+    const fullHistory = await dbGetHistorico();
+    
+    // Filtra apenas registros de movimentação (atribuído, devolvido, ou com a tag # de movimentação)
+    const movs = fullHistory.filter(h => h.atribuido || h.devolvido || (h.obs && h.obs.match(/^#[0-9]{4}/)));
+
+    if (!movs.length) {
+      container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text2);">Nenhuma movimentação registrada ainda.</div>';
+      return;
+    }
+
+    const html = `
+      <div class="table-wrap" style="max-height: 400px; overflow-y: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Ação</th>
+              <th>Máquina</th>
+              <th>Colaborador</th>
+              <th>Observação</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${movs.slice(0, 50).map(h => {
+              const isEntrada = !!h.devolvido || (h.obs && h.obs.toLowerCase().includes('devoluç'));
+              const dateStr = h.atribuido || h.devolvido || h.created_at;
+              const badge = isEntrada 
+                ? '<span class="badge" style="background:var(--accent-bg,#3a3e26);color:var(--accent,#a3e635);"><i class="bi bi-box-arrow-in-left"></i> Entrada</span>'
+                : '<span class="badge" style="background:var(--primary-bg,#1d3557);color:var(--primary,#60a5fa);"><i class="bi bi-box-arrow-right"></i> Saída</span>';
+              
+              return `<tr>
+                <td style="font-size:12px;color:var(--text2);">${new Date(dateStr).toLocaleDateString('pt-BR')}</td>
+                <td>${badge}</td>
+                <td style="font-weight:600;font-size:13px;">${h.ativo_nome}</td>
+                <td style="font-size:13px;">${h.colab || '—'}</td>
+                <td style="font-size:12px;color:var(--text2);">${h.obs || '—'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  } catch (error) {
+    console.error(error);
+    container.innerHTML = '<div style="padding:24px;text-align:center;color:#f87171;">Erro ao carregar histórico.</div>';
+  }
+}
+
