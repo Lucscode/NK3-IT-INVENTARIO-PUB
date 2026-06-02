@@ -50,14 +50,18 @@ async function renderCelulares() {
   const pagedList = list.slice(startIdx, startIdx + CELULARES_PER_PAGE);
 
   let html = `<div class="card"><div class="table-wrap"><table>
-    <thead><tr><th>Celular</th><th>Status</th><th>Número</th><th>Colaborador</th><th>Ações</th></tr></thead>
+    <thead><tr><th>Celular</th><th>Marca</th><th>Modelo</th><th>Status</th><th>Número</th><th>IMEI 1</th><th>IMEI 2</th><th>Colaborador</th><th>Ações</th></tr></thead>
     <tbody>${pagedList.map(a => `<tr>
       <td><span style="margin-right:8px;font-size:16px;color:var(--accent);"><i class="bi bi-phone"></i></span><b>${a.nome}</b></td>
+      <td><span style="font-size:12px;">${a.marca || '—'}</span></td>
+      <td><span style="font-size:12px;">${a.modelo || '—'}</span></td>
       <td>${statusBadge(a.status)}</td>
       <td><span class="text-mono" style="font-size:12px;">${a.numero_linha || '—'}</span></td>
+      <td><span class="text-mono" style="font-size:11px;">${a.imei1 || '—'}</span></td>
+      <td><span class="text-mono" style="font-size:11px;">${a.imei2 || '—'}</span></td>
       <td><span style="font-size:12px;">${a.colab || '—'}</span></td>
       <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetalheCelular('${a.id}')">Ver</button></td>
-    </tr>`).join('') || `<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text2);">Nenhum celular encontrado</td></tr>`}</tbody>
+    </tr>`).join('') || `<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text2);">Nenhum celular encontrado</td></tr>`}</tbody>
   </table></div></div>`;
 
   if (totalPages > 1) {
