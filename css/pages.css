@@ -58,6 +58,11 @@
 }
 .client-content { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
 
+@media (max-width: 580px) {
+  .client-header { padding: 0 16px; }
+  .client-content { padding: 16px 12px; }
+}
+
 /* ===== SOLICITATION FORM STEPS ===== */
 .sol-steps { display: flex; gap: 0; margin-bottom: 24px; overflow-x: auto; }
 .sol-step {

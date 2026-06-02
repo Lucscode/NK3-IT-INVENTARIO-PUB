@@ -87,6 +87,9 @@ td {
   border-bottom: 1px solid var(--border);
   vertical-align: middle; font-size: 13px; color: var(--text);
 }
+@media (max-width: 768px) {
+  th, td { padding: 10px 12px; }
+}
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: var(--bg3); }
 
@@ -249,7 +252,10 @@ tr:hover td { background: var(--bg3); }
   position: sticky; bottom: 0; background: var(--bg2); z-index: 2;
 }
 @media (max-width: 480px) {
-  .modal-footer { flex-direction: column; }
+  .modal-overlay { padding: 12px; }
+  .modal-header { padding: 14px 16px; }
+  .modal-body { padding: 16px; }
+  .modal-footer { padding: 14px 16px; flex-direction: column; }
   .modal-footer .btn { width: 100%; justify-content: center; }
 }
 
@@ -278,7 +284,8 @@ select option { background: #fff; }
 textarea { resize: vertical; min-height: 80px; }
 
 /* ===== TABS ===== */
-.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
 .tab {
   padding: 10px 16px; font-size: 13px; font-weight: 600;
   color: var(--text2); cursor: pointer;

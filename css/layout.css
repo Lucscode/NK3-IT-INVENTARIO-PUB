@@ -154,3 +154,10 @@
   .topbar-title { font-size: 16px; }
   .topbar-sub { font-size: 11px; }
 }
+
+@media (max-width: 580px) {
+  .content { padding: 12px; }
+  .topbar { padding: 0 12px; gap: 8px; }
+  .topbar-title { font-size: 15px; }
+  .menu-toggle { padding: 6px; font-size: 18px; }
+}
