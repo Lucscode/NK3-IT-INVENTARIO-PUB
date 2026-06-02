@@ -2,7 +2,7 @@
 async function renderSolicitacoes() {
   const list = await dbGetSolicitacoes();
   _cacheSolicitacoes = list;
-  const statusOpts = ['pendente', 'em andamento', 'enviado', 'cancelado'];
+  const statusOpts = ['pendente', 'em andamento', 'enviado', 'entregue', 'cancelado'];
 
   document.getElementById('solTableBody').innerHTML = list.map(s => `<tr>
     <td><b>${s.nome || s.colaborador || s.colab || '—'}</b><br><span style="font-size:11px;color:var(--text2);">${s.email || ''}</span></td>
@@ -163,7 +163,7 @@ function openNovaSolicitacao() {
   document.getElementById('adminSolKit').checked = false;
   document.getElementById('adminSolObs').value = '';
 
-  document.getElementById('modalNovaSolicitacao').classList.add('active');
+  openModal('modalNovaSolicitacao');
 }
 
 async function enviarSolicitacaoAdmin() {

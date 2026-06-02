@@ -178,7 +178,7 @@ CREATE TABLE solicitacoes (
   prioridade  TEXT DEFAULT 'normal' CHECK (prioridade IN ('baixa','normal','alta','urgente')),
   obs         TEXT DEFAULT '',
   status      TEXT NOT NULL DEFAULT 'pendente'
-                CHECK (status IN ('pendente','em andamento','enviado','cancelado')),
+                CHECK (status IN ('pendente','em andamento','enviado','entregue','cancelado')),
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

@@ -91,7 +91,7 @@ async function renderClientTab(tab) {
                 <td><b>${s.nome || s.colaborador || s.colab || '—'}</b></td>
                 <td>${fmtDate(s.inicio)}</td>
                 <td>${s.kit ? '<span class="badge badge-green">Sim</span>' : '<span class="badge badge-gray">Não</span>'}</td>
-                <td><span class="badge badge-${s.status === 'pendente' ? 'orange' : s.status === 'em andamento' ? 'blue' : s.status === 'enviado' ? 'green' : 'gray'}">${s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : '—'}</span></td>
+                <td>${statusBadge(s.status)}</td>
                 <td>
                   ${s.rastreio
                     ? `<a href="https://www.linkcorreios.com.br/${s.rastreio}" target="_blank"
