@@ -281,3 +281,28 @@ async function dbUpdateKitRastreio(id, rastreio) {
     .eq('id', id);
   if (error) _throw('Erro ao atualizar rastreio do kit', error);
 }
+
+// ─── DEVOLUÇÕES ───────────────────────────────────────────────
+async function dbGetDevolucoes() {
+  const { data, error } = await sb.from('devolucoes').select('*').order('created_at', { ascending: false });
+  if (error) _throw('Erro ao buscar devoluções', error);
+  return data || [];
+}
+
+async function dbCreateDevolucao(payload) {
+  const { data, error } = await sb.from('devolucoes').insert([payload]).select().single();
+  if (error) _throw('Erro ao criar devolução', error);
+  return data;
+}
+
+async function dbUpdateDevolucao(id, payload) {
+  const { data, error } = await sb.from('devolucoes').update(payload).eq('id', id).select().single();
+  if (error) _throw('Erro ao atualizar devolução', error);
+  return data;
+}
+
+async function dbDeleteDevolucao(id) {
+  const { error } = await sb.from('devolucoes').delete().eq('id', id);
+  if (error) _throw('Erro ao deletar devolução', error);
+  return true;
+}

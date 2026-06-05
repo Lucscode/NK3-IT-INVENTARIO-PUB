@@ -23,7 +23,8 @@ function goTo(page) {
     monitores: 'Monitores',
     celulares: 'Celulares',
     'area-cliente': 'Área do Cliente',
-    movimentacoes: 'Entradas e Saídas'
+    movimentacoes: 'Entradas e Saídas',
+    devolucoes: 'Devoluções'
   };
   const subs = {
     dashboard: 'Visão geral do Inventário de TI',
@@ -35,7 +36,8 @@ function goTo(page) {
     monitores: 'Gerencie monitores e telas',
     celulares: 'Controle de aparelhos e linhas corporativas',
     'area-cliente': 'Portal do colaborador',
-    movimentacoes: 'Registro de entrega e devolução de equipamentos'
+    movimentacoes: 'Registro de entrega e devolução de equipamentos',
+    devolucoes: 'Acompanhamento de máquinas a serem devolvidas'
   };
 
   document.getElementById('pageTitle').textContent = titles[page] || page;
@@ -62,6 +64,7 @@ function goTo(page) {
   if(page === 'kits') { renderKitTab(); }
   if(page === 'solicitacoes') renderSolicitacoes();
   if(page === 'movimentacoes') renderMovimentacoes();
+  if(page === 'devolucoes') renderDevolucoes();
   if(page === 'area-cliente') { renderClientTab('solicitar'); }
 }
 

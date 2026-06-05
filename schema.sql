@@ -16,6 +16,7 @@ DROP TABLE IF EXISTS ativo_fotos    CASCADE;
 DROP TABLE IF EXISTS ativos         CASCADE;
 DROP TABLE IF EXISTS colaboradores  CASCADE;
 DROP TABLE IF EXISTS perfis         CASCADE;
+DROP TABLE IF EXISTS devolucoes     CASCADE;
 
 -- ============================================================
 -- 1. PERFIS DE USUÁRIO (vinculado ao Supabase Auth)
@@ -183,6 +184,25 @@ CREATE TABLE solicitacoes (
 );
 
 -- ============================================================
+-- 9. DEVOLUÇÕES
+-- ============================================================
+CREATE TABLE devolucoes (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  ativo_id         UUID REFERENCES ativos(id) ON DELETE SET NULL,
+  ativo_nome       TEXT DEFAULT '',
+  patrimonio       TEXT DEFAULT '',
+  colaborador      TEXT NOT NULL DEFAULT '',
+  motivo           TEXT DEFAULT '',
+  obs              TEXT DEFAULT '',
+  codigo_devolucao TEXT DEFAULT '',
+  data_geracao     DATE,
+  validade         DATE,
+  status           TEXT NOT NULL DEFAULT 'pendente'
+                     CHECK (status IN ('pendente','concluida','expirada')),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================
 -- ROW LEVEL SECURITY (RLS)
 -- ============================================================
 
@@ -195,6 +215,7 @@ ALTER TABLE historico     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kit_estoque   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kit_historico ENABLE ROW LEVEL SECURITY;
 ALTER TABLE solicitacoes  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE devolucoes    ENABLE ROW LEVEL SECURITY;
 
 -- ── Helper: verificar se usuário é admin ──────────────────────
 CREATE OR REPLACE FUNCTION is_admin()
@@ -284,6 +305,15 @@ CREATE POLICY "Client cria solicitação"
 
 CREATE POLICY "Client lê solicitações"
   ON solicitacoes FOR SELECT
+  USING (auth.role() = 'authenticated');
+
+-- ── devoluções ────────────────────────────────────────────────
+CREATE POLICY "Admin gerencia devolucoes"
+  ON devolucoes FOR ALL
+  USING (is_admin());
+
+CREATE POLICY "Client lê devolucoes"
+  ON devolucoes FOR SELECT
   USING (auth.role() = 'authenticated');
 
 -- ============================================================

@@ -111,6 +111,9 @@
           <span class="nav-icon"><i class="bi bi-inbox"></i></span> Solicitações
           <span class="nav-badge" id="pendBadge">0</span>
         </div>
+        <div class="nav-item" onclick="goTo('devolucoes')" id="navDevolucoes">
+          <span class="nav-icon"><i class="bi bi-box-seam"></i></span> Devoluções
+        </div>
       </div>
 
       <div class="sidebar-section" id="clientSection" style="display:none;">
@@ -390,6 +393,32 @@
                   </tr>
                 </thead>
                 <tbody id="solTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- DEVOLUÇÕES -->
+        <div class="page" id="page-devolucoes">
+          <div class="toolbar">
+            <div class="toolbar-left"></div>
+            <div class="toolbar-right">
+              <button class="btn btn-primary btn-sm" onclick="openNovaDevolucao()"><i class="bi bi-plus-lg"></i> Nova Devolução</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Colaborador</th>
+                    <th>Máquina</th>
+                    <th>Validade</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="devolucoesTableBody"></tbody>
               </table>
             </div>
           </div>
@@ -1087,6 +1116,37 @@
     </div>
   </div>
 
+  <!-- MODAL: NOVA DEVOLUÇÃO -->
+  <div class="modal-overlay" id="modalNovaDevolucao">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <div class="modal-title">Nova Devolução</div>
+        <button class="modal-close" onclick="closeModal('modalNovaDevolucao')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group span2"><label>Colaborador *</label><input type="text" id="devColaborador" placeholder="Nome do colaborador"></div>
+          <div class="form-group span2">
+            <label>Máquina / Patrimônio *</label>
+            <input type="text" id="devMaquina" placeholder="Ex: Notebook Dell (TI-001)" list="devAtivosList">
+            <datalist id="devAtivosList"></datalist>
+          </div>
+          <div class="form-group span2"><label>Motivo da devolução</label><input type="text" id="devMotivo" placeholder="Ex: Desligamento, Troca de equipamento..."></div>
+          <div class="form-group"><label>Código de Devolução</label><input type="text" id="devCodigo" placeholder="Código Correios"></div>
+          <div class="form-group"><label>Data de Validade (15 dias úteis)</label><input type="date" id="devValidade"></div>
+        </div>
+        <div class="form-group" style="margin-top: 16px;">
+          <label>Observações</label>
+          <textarea id="devObs" placeholder="Acessórios a serem devolvidos, etc." style="height: 80px; resize: vertical;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modalNovaDevolucao')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveDevolucao()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: INDICAR MÁQUINA (CLIENTE) -->
   <div class="modal-overlay" id="modalIndicarMaquina">
     <div class="modal">
@@ -1196,6 +1256,7 @@
   <script src="js/views/solicitacoes.js"></script>
   <script src="js/views/movimentacoes.js"></script>
   <script src="js/views/cliente.js"></script>
+  <script src="js/views/devolucoes.js"></script>
 
   <!-- Init -->
   <script src="js/init.js"></script>
