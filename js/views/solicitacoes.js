@@ -1,10 +1,18 @@
 // ===================== SOLICITAÇÕES =====================
+let currentPageSol = 1;
+const ITEMS_PER_PAGE_SOL = 10;
+
 async function renderSolicitacoes() {
   const list = await dbGetSolicitacoes();
   _cacheSolicitacoes = list;
   const statusOpts = ['pendente', 'em andamento', 'enviado', 'entregue', 'cancelado'];
 
-  document.getElementById('solTableBody').innerHTML = list.map(s => `<tr>
+  const totalPages = Math.ceil(list.length / ITEMS_PER_PAGE_SOL) || 1;
+  if (currentPageSol > totalPages) currentPageSol = totalPages;
+  const startIndex = (currentPageSol - 1) * ITEMS_PER_PAGE_SOL;
+  const paginatedList = list.slice(startIndex, startIndex + ITEMS_PER_PAGE_SOL);
+
+  document.getElementById('solTableBody').innerHTML = paginatedList.map(s => `<tr>
     <td><b>${s.nome || s.colaborador || s.colab || '—'}</b><br><span style="font-size:11px;color:var(--text2);">${s.email || ''}</span></td>
     <td>${s.cpf || '—'}</td>
     <td>${fmtDate(s.inicio)}</td>
@@ -52,10 +60,28 @@ async function renderSolicitacoes() {
     </td>
   </tr>`).join('') || `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text2);">Nenhuma solicitação</td></tr>`;
 
+  const pagContainer = document.getElementById('solPagination');
+  if (pagContainer) {
+    if (list.length > ITEMS_PER_PAGE_SOL) {
+      pagContainer.innerHTML = `
+        <button class="btn btn-ghost btn-sm" onclick="changePageSol(currentPageSol - 1)" ${currentPageSol === 1 ? 'disabled' : ''}>Anterior</button>
+        <span style="display:flex;align-items:center;font-size:12px;color:var(--text2);">Página ${currentPageSol} de ${totalPages}</span>
+        <button class="btn btn-ghost btn-sm" onclick="changePageSol(currentPageSol + 1)" ${currentPageSol === totalPages ? 'disabled' : ''}>Próxima</button>
+      `;
+    } else {
+      pagContainer.innerHTML = '';
+    }
+  }
+
   // Carrega badges de rastreio de forma assíncrona
-  list.forEach(s => {
+  paginatedList.forEach(s => {
     if (s.rastreio) loadRastreioBadge(s.id, s.rastreio);
   });
+}
+
+function changePageSol(page) {
+  currentPageSol = page;
+  renderSolicitacoes();
 }
 
 async function loadRastreioBadge(id, codigo) {

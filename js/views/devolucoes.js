@@ -1,12 +1,19 @@
 // ===================== DEVOLUÇÕES =====================
 let _cacheDevolucoes = [];
+let currentPageDev = 1;
+const ITEMS_PER_PAGE_DEV = 10;
 
 async function renderDevolucoes() {
   const list = await dbGetDevolucoes();
   _cacheDevolucoes = list;
   const statusOpts = ['pendente', 'concluida', 'expirada'];
 
-  document.getElementById('devolucoesTableBody').innerHTML = list.map(d => {
+  const totalPages = Math.ceil(list.length / ITEMS_PER_PAGE_DEV) || 1;
+  if (currentPageDev > totalPages) currentPageDev = totalPages;
+  const startIndex = (currentPageDev - 1) * ITEMS_PER_PAGE_DEV;
+  const paginatedList = list.slice(startIndex, startIndex + ITEMS_PER_PAGE_DEV);
+
+  document.getElementById('devolucoesTableBody').innerHTML = paginatedList.map(d => {
     let trStyle = '';
     if (d.status === 'expirada') trStyle = 'background-color: var(--danger-bg, #fee2e2);';
     else if (d.status === 'concluida') trStyle = 'opacity: 0.8;';
@@ -38,6 +45,24 @@ async function renderDevolucoes() {
       </td>
     </tr>`;
   }).join('') || `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text2);">Nenhuma devolução registrada</td></tr>`;
+
+  const pagContainer = document.getElementById('devPagination');
+  if (pagContainer) {
+    if (list.length > ITEMS_PER_PAGE_DEV) {
+      pagContainer.innerHTML = `
+        <button class="btn btn-ghost btn-sm" onclick="changePageDev(currentPageDev - 1)" ${currentPageDev === 1 ? 'disabled' : ''}>Anterior</button>
+        <span style="display:flex;align-items:center;font-size:12px;color:var(--text2);">Página ${currentPageDev} de ${totalPages}</span>
+        <button class="btn btn-ghost btn-sm" onclick="changePageDev(currentPageDev + 1)" ${currentPageDev === totalPages ? 'disabled' : ''}>Próxima</button>
+      `;
+    } else {
+      pagContainer.innerHTML = '';
+    }
+  }
+}
+
+function changePageDev(page) {
+  currentPageDev = page;
+  renderDevolucoes();
 }
 
 function openDevDetalhe(id) {

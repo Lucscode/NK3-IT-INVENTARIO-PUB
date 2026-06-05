@@ -1,4 +1,7 @@
 // ===================== KITS =====================
+let currentPageKit = 1;
+const ITEMS_PER_PAGE_KIT = 10;
+
 async function renderKitTab() {
   const c = document.getElementById('kitTabContent');
   const ITEMS = [
@@ -43,7 +46,13 @@ async function renderKitTab() {
           <thead><tr><th>Colaborador</th><th>Qtd Kits</th><th>Data</th><th>Obs</th><th>Rastreio</th><th>Status</th><th>Ações</th></tr></thead>
           <tbody>${hist.length === 0
         ? `<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px;">Nenhuma saída registrada ainda.</td></tr>`
-        : hist.map(h => `<tr>
+        : (() => {
+            const totalPages = Math.ceil(hist.length / ITEMS_PER_PAGE_KIT) || 1;
+            if (currentPageKit > totalPages) currentPageKit = totalPages;
+            const startIndex = (currentPageKit - 1) * ITEMS_PER_PAGE_KIT;
+            const paginatedHist = hist.slice(startIndex, startIndex + ITEMS_PER_PAGE_KIT);
+            
+            return paginatedHist.map(h => `<tr>
             <td>${h.colab || '—'}</td>
             <td><span class="badge badge-blue">${h.quantidade}</span></td>
             <td>${fmtDate(h.data)}</td>
@@ -66,9 +75,16 @@ async function renderKitTab() {
           }
             </td>
             <td>${!h.cancelado ? `<button class="btn btn-danger btn-sm" onclick="cancelarKit('${h.id}',${h.quantidade})">Cancelar</button>` : '—'}</td>
-          </tr>`).join('')}
+          </tr>`).join('');
+          })()}
           </tbody>
         </table></div>
+        ${hist.length > ITEMS_PER_PAGE_KIT ? `
+        <div style="display:flex;justify-content:center;gap:8px;padding:16px;">
+          <button class="btn btn-ghost btn-sm" onclick="changePageKit(currentPageKit - 1)" ${currentPageKit === 1 ? 'disabled' : ''}>Anterior</button>
+          <span style="display:flex;align-items:center;font-size:12px;color:var(--text2);">Página ${currentPageKit} de ${Math.ceil(hist.length / ITEMS_PER_PAGE_KIT)}</span>
+          <button class="btn btn-ghost btn-sm" onclick="changePageKit(currentPageKit + 1)" ${currentPageKit === Math.ceil(hist.length / ITEMS_PER_PAGE_KIT) ? 'disabled' : ''}>Próxima</button>
+        </div>` : ''}
       </div>`;
 
   } catch (err) {
@@ -85,6 +101,10 @@ async function renderKitTab() {
   }
 }
 
+function changePageKit(page) {
+  currentPageKit = page;
+  renderKitTab();
+}
 
 async function registrarSaidaKit() {
   const colab = document.getElementById('kitColabSaida').value.trim();
