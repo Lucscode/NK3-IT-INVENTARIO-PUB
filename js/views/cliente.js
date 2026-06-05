@@ -21,7 +21,7 @@ async function renderClientTab(tab) {
           <div class="form-group span2"><label>Nome completo *</label><input type="text" id="solNome" placeholder="Nome do colaborador"></div>
           <div class="form-group"><label>CPF *</label><input type="text" id="solCpf" placeholder="000.000.000-00"></div>
           <div class="form-group"><label>E-mail</label><input type="email" id="solEmail" placeholder="colaborador@empresa.com"></div>
-          <div class="form-group"><label>Data de início *</label><input type="date" id="solInicio"></div>
+          <div class="form-group"><label>Data de início</label><input type="date" id="solInicio"></div>
         </div>
 
         <hr style="border: none; border-top: 1px solid var(--border); margin: 32px 0;">
@@ -58,6 +58,19 @@ async function renderClientTab(tab) {
         </div>
 
         <hr style="border: none; border-top: 1px solid var(--border); margin: 32px 0;">
+
+        <!-- ACESSÓRIOS OPCIONAIS -->
+        <h3 style="font-size:16px; margin-bottom:12px; color:var(--text);">Acessórios Opcionais</h3>
+        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 32px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" class="solAcessorio" value="Fonte"> Fonte</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" class="solAcessorio" value="Monitor"> Monitor</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" class="solAcessorio" value="Cabo HDMI"> Cabo HDMI</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" class="solAcessorio" value="Teclado"> Teclado</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" class="solAcessorio" value="Mouse"> Mouse</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" class="solAcessorio" value="Webcam"> Webcam</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" class="solAcessorio" value="Headset"> Headset</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" class="solAcessorio" value="Suporte de Notebook"> Suporte de Notebook</label>
+        </div>
 
         <div class="form-group">
           <label>Observações</label>
@@ -291,12 +304,19 @@ async function enviarSolicitacao() {
   const rua = document.getElementById('solRua').value.trim();
   const numero = document.getElementById('solNumero').value.trim();
   
-  if (!nome || !cpf || !inicio || !cep || !bairro || !cidade || !uf || !rua || !numero) { 
+  if (!nome || !cpf || !cep || !bairro || !cidade || !uf || !rua || !numero) { 
     notify('Preencha os campos obrigatórios (*)', 'error'); return; 
   }
 
   const comp = document.getElementById('solComplemento').value.trim();
   const complementoStr = comp ? `${comp} (${cidade}/${uf.toUpperCase()})` : `${cidade}/${uf.toUpperCase()}`;
+
+  const acessoriosEls = document.querySelectorAll('.solAcessorio:checked');
+  const acessorios = Array.from(acessoriosEls).map(el => el.value);
+  let finalObs = document.getElementById('solObs').value.trim();
+  if (acessorios.length > 0) {
+    finalObs = `[Acessórios: ${acessorios.join(', ')}]\n\n` + finalObs;
+  }
 
   await dbCreateSolicitacao({
     colaborador: nome,
@@ -309,7 +329,7 @@ async function enviarSolicitacao() {
     numero,
     complemento: complementoStr,
     kit: document.getElementById('solKit').checked,
-    obs: document.getElementById('solObs').value.trim(),
+    obs: finalObs,
     status: 'pendente'
   });
   
@@ -326,7 +346,7 @@ async function enviarSolicitacao() {
       inicio: inicio,
       endereco: `${rua}, ${numero} - ${bairro}, ${cidade}/${uf.toUpperCase()} (CEP: ${cep}) - ${comp}`,
       kit: document.getElementById('solKit').checked ? 'Sim' : 'Não',
-      obs: document.getElementById('solObs').value.trim()
+      obs: finalObs
     }, 'xE5RrvIe6hERi2CTp').then(() => {
       console.log('E-mail de notificação enviado para o suporte!');
     }).catch(err => {

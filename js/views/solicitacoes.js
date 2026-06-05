@@ -161,6 +161,7 @@ function openNovaSolicitacao() {
   document.getElementById('adminSolNumero').value = '';
   document.getElementById('adminSolComplemento').value = '';
   document.getElementById('adminSolKit').checked = false;
+  document.querySelectorAll('.adminSolAcessorio').forEach(el => el.checked = false);
   document.getElementById('adminSolObs').value = '';
 
   openModal('modalNovaSolicitacao');
@@ -178,12 +179,19 @@ async function enviarSolicitacaoAdmin() {
   const rua = document.getElementById('adminSolRua').value.trim();
   const numero = document.getElementById('adminSolNumero').value.trim();
   
-  if (!nome || !cpf || !inicio || !cep || !bairro || !cidade || !uf || !rua || !numero) { 
+  if (!nome || !cpf || !cep || !bairro || !cidade || !uf || !rua || !numero) { 
     notify('Preencha os campos obrigatórios (*)', 'error'); return; 
   }
 
   const comp = document.getElementById('adminSolComplemento').value.trim();
   const complementoStr = comp ? `${comp} (${cidade}/${uf.toUpperCase()})` : `${cidade}/${uf.toUpperCase()}`;
+
+  const acessoriosEls = document.querySelectorAll('.adminSolAcessorio:checked');
+  const acessorios = Array.from(acessoriosEls).map(el => el.value);
+  let finalObs = document.getElementById('adminSolObs').value.trim();
+  if (acessorios.length > 0) {
+    finalObs = `[Acessórios: ${acessorios.join(', ')}]\n\n` + finalObs;
+  }
 
   await dbCreateSolicitacao({
     colaborador: nome,
@@ -196,7 +204,7 @@ async function enviarSolicitacaoAdmin() {
     numero,
     complemento: complementoStr,
     kit: document.getElementById('adminSolKit').checked,
-    obs: document.getElementById('adminSolObs').value.trim(),
+    obs: finalObs,
     status: 'pendente'
   });
   
@@ -213,7 +221,7 @@ async function enviarSolicitacaoAdmin() {
       inicio: inicio,
       endereco: `${rua}, ${numero} - ${bairro}, ${cidade}/${uf.toUpperCase()} (CEP: ${cep}) - ${comp}`,
       kit: document.getElementById('adminSolKit').checked ? 'Sim' : 'Não',
-      obs: document.getElementById('adminSolObs').value.trim()
+      obs: finalObs
     }, 'xE5RrvIe6hERi2CTp').then(() => {
       console.log('E-mail de notificação enviado para o suporte!');
     }).catch(err => {

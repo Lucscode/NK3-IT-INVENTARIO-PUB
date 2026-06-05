@@ -3,6 +3,59 @@ let currentMonitorFilter = 'todos';
 let currentPageMonitores = 1;
 const MONITORES_PER_PAGE = 20;
 let editingMonitorId = null;
+let _cacheMonFotos = {};
+
+function _renderFotoGalleryMon(fotos) {
+  const container = document.getElementById('fotoGalleryMon');
+  if (!container) return;
+  const MAX = 5;
+  container.innerHTML = fotos.map((f, i) => `
+    <div style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1px solid var(--border);">
+      <img src="${f.url}" style="width:100%;height:100%;object-fit:cover;">
+      <button onclick="deletarFotoMon('${f.id}','${f.url}')"
+        style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);border:none;color:#fff;
+               border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:20px;text-align:center;">×</button>
+    </div>`).join('') +
+    (fotos.length < MAX ? `
+      <label style="width:80px;height:80px;border:2px dashed var(--border);border-radius:8px;
+                    display:flex;flex-direction:column;align-items:center;justify-content:center;
+                    cursor:pointer;color:var(--text3);font-size:11px;gap:4px;transition:.15s;"
+             onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+             onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">
+        <span style="font-size:24px;"><i class="bi bi-camera"></i></span>Upload
+        <input type="file" accept="image/*" multiple style="display:none;" onchange="uploadFotosMon(this)">
+      </label>` : '');
+}
+
+async function uploadFotosMon(input) {
+  if (!editingMonitorId) {
+    notify('Salve o monitor primeiro antes de adicionar fotos', 'error');
+    return;
+  }
+  const fotos = _cacheMonFotos[editingMonitorId] || [];
+  const MAX = 5;
+  const remaining = MAX - fotos.length;
+  const files = Array.from(input.files).slice(0, remaining);
+  if (!files.length) return;
+  notify('Enviando fotos...');
+  for (let i = 0; i < files.length; i++) {
+    const nova = await dbUploadFoto(editingMonitorId, files[i], fotos.length + i);
+    if (nova) fotos.push(nova);
+  }
+  _cacheMonFotos[editingMonitorId] = fotos;
+  _renderFotoGalleryMon(fotos);
+  notify('Fotos salvas!');
+}
+
+async function deletarFotoMon(fotoId, url) {
+  if (!confirm('Excluir esta foto?')) return;
+  await dbDeleteFoto(fotoId, url);
+  if (editingMonitorId) {
+    const fotos = await dbGetFotos(editingMonitorId);
+    _cacheMonFotos[editingMonitorId] = fotos;
+    _renderFotoGalleryMon(fotos);
+  }
+}
 
 async function renderMonitores() {
   document.getElementById('monitoresContainer').innerHTML = `<div style="padding:40px;text-align:center;color:var(--text2);">Carregando...</div>`;
@@ -31,6 +84,9 @@ async function renderMonitores() {
     { label: 'Em Uso', value: 'em uso' },
     { label: 'Estoque', value: 'estoque' },
     { label: 'Quebrado', value: 'quebrado' },
+    { label: 'Saindo para envio', value: 'saindo para envio' },
+    { label: 'Entregue', value: 'entregue' },
+    { label: 'Não postado ainda', value: 'nao postado ainda' },
   ];
   const monContainer = document.getElementById('monitorFilters');
   if (monContainer) {
@@ -52,12 +108,15 @@ async function renderMonitores() {
     <tbody>${pagedList.map(a => `<tr>
       <td>${statusBadge(a.status)}</td>
       <td><span style="font-size:12px;">${a.colab || '—'}</span></td>
-      <td><span style="margin-right:8px;font-size:14px;color:var(--accent);"><i class="bi bi-display"></i></span><span style="font-size:12px;font-weight:bold;">${a.marca || '—'}</span></td>
+      <td><span style="margin-right:8px;font-size:14px;color:var(--accent);">${a.ativo_fotos && a.ativo_fotos.length > 0 ? `<img src="${a.ativo_fotos[0].url}" style="width:28px;height:28px;object-fit:cover;border-radius:4px;vertical-align:middle;cursor:pointer;border:1px solid var(--border);" onclick="event.stopPropagation();openLightbox('${a.ativo_fotos[0].url}')">` : `<i class="bi bi-display"></i>`}</span><span style="font-size:12px;font-weight:bold;">${a.marca || '—'}</span></td>
       <td><span style="font-size:12px;">${a.modelo || '—'}</span></td>
       <td><span style="font-size:12px;">${a.localizacao || '—'}</span></td>
       <td><span style="font-size:12px;">${a.tela || '—'}</span></td>
       <td><span class="text-mono" style="font-size:11px;">${a.serie || '—'}</span></td>
-      <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetalheMonitor('${a.id}')">Ver</button></td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetalheMonitor('${a.id}')" title="Ver Detalhes"><i class="bi bi-eye"></i></button>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openNovoMonitor('${a.id}')" title="Editar"><i class="bi bi-pencil"></i></button>
+      </td>
     </tr>`).join('') || `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text2);">Nenhum monitor encontrado</td></tr>`}</tbody>
   </table></div></div>`;
 
@@ -94,6 +153,7 @@ async function openNovoMonitor(id = null) {
     const el = document.getElementById(i); if (el) el.value = '';
   });
   document.getElementById('monStatus').value = 'estoque';
+  _renderFotoGalleryMon([]);
 
   if (id) {
     const a = await dbGetAtivoById(id);
@@ -106,6 +166,9 @@ async function openNovoMonitor(id = null) {
       const el = document.getElementById('mon' + fId); if (el) el.value = a[key] || '';
     });
     document.getElementById('monStatus').value = a.status || 'estoque';
+    const fotos = await dbGetFotos(id);
+    _cacheMonFotos[id] = fotos;
+    _renderFotoGalleryMon(fotos);
   }
 
   // Populate datalist
@@ -153,13 +216,17 @@ async function saveMonitor() {
   } else {
     const created = await dbCreateAtivo(payload);
     if (created) {
-      notify('Monitor cadastrado!');
+      editingMonitorId = created.id;
+      notify('Monitor cadastrado! Agora você pode adicionar fotos.');
       if (payload.colab) {
         await dbAddHistorico({
           ativo_id: created.id, ativo_nome: `${created.nome} (${created.patrimonio})`,
           colab: payload.colab, atribuido: new Date().toISOString().split('T')[0]
         });
       }
+      closeModal('modalNovoMonitor');
+      await openNovoMonitor(created.id);
+      return;
     }
   }
   closeModal('modalNovoMonitor');
@@ -171,9 +238,16 @@ async function openDetalheMonitor(id) {
   const a = await dbGetAtivoById(id);
   if (!a) return;
 
+  const fotos = await dbGetFotos(id);
+  const fotoHtml = fotos.length
+    ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-right:20px;">
+        ${fotos.map(f => `<img src="${f.url}" style="width:90px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer;" onclick="openLightbox('${f.url}')">`).join('')}
+       </div>`
+    : `<div style="width:70px;height:70px;background:var(--bg3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--text3);margin-right:20px;"><i class="bi bi-display"></i></div>`;
+
   document.getElementById('modalDetalheBody').innerHTML = `
-    <div style="display:flex;gap:20px;margin-bottom:20px;align-items:flex-start;">
-      <div style="width:70px;height:70px;background:var(--bg3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--text3);"><i class="bi bi-display"></i></div>
+    <div style="display:flex;gap:20px;margin-bottom:20px;align-items:flex-start;flex-wrap:wrap;">
+      ${fotoHtml}
       <div>
         <div style="font-size:20px;font-weight:800;margin-bottom:4px;">${a.nome}</div>
         <div style="font-family:var(--mono);font-size:12px;color:var(--text2);margin-bottom:8px;">

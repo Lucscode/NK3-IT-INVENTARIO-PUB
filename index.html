@@ -826,6 +826,9 @@
               <option value="em uso">Em Uso</option>
               <option value="estoque">Estoque</option>
               <option value="quebrado">Quebrado</option>
+              <option value="saindo para envio">Saindo para envio</option>
+              <option value="entregue">Entregue</option>
+              <option value="nao postado ainda">Não postado ainda</option>
             </select>
           </div>
           <div class="form-group">
@@ -840,6 +843,10 @@
           <div class="form-group span2">
             <label>Observações</label>
             <textarea id="monObs" placeholder="Alguma anotação..."></textarea>
+          </div>
+          <div class="form-group span2">
+            <label>📷 Fotos do Equipamento <span style="font-size:10px;font-weight:400;color:var(--text2);">(até 5 fotos — salve o monitor primeiro)</span></label>
+            <div id="fotoGalleryMon" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;"></div>
           </div>
         </div>
       </div>
@@ -1017,7 +1024,7 @@
           <div class="form-group span2"><label>Nome completo *</label><input type="text" id="adminSolNome" placeholder="Nome do colaborador"></div>
           <div class="form-group"><label>CPF *</label><input type="text" id="adminSolCpf" placeholder="000.000.000-00"></div>
           <div class="form-group"><label>E-mail</label><input type="email" id="adminSolEmail" placeholder="colaborador@empresa.com"></div>
-          <div class="form-group"><label>Data de início *</label><input type="date" id="adminSolInicio"></div>
+          <div class="form-group"><label>Data de início</label><input type="date" id="adminSolInicio"></div>
         </div>
 
         <hr style="border: none; border-top: 1px solid var(--border); margin: 32px 0;">
@@ -1054,6 +1061,19 @@
         </div>
 
         <hr style="border: none; border-top: 1px solid var(--border); margin: 32px 0;">
+
+        <!-- ACESSÓRIOS OPCIONAIS -->
+        <h3 style="font-size:16px; margin-bottom:12px; color:var(--text);">Acessórios Opcionais</h3>
+        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 32px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" class="adminSolAcessorio" value="Fonte"> Fonte</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" class="adminSolAcessorio" value="Monitor"> Monitor</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" class="adminSolAcessorio" value="Cabo HDMI"> Cabo HDMI</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" class="adminSolAcessorio" value="Teclado"> Teclado</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" class="adminSolAcessorio" value="Mouse"> Mouse</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" class="adminSolAcessorio" value="Webcam"> Webcam</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" class="adminSolAcessorio" value="Headset"> Headset</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" class="adminSolAcessorio" value="Suporte de Notebook"> Suporte de Notebook</label>
+        </div>
 
         <div class="form-group">
           <label>Observações</label>
