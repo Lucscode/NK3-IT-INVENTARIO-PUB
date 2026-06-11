@@ -41,10 +41,19 @@ Para que o código HTML/JS consiga conversar com o seu banco de dados recém-cri
    ```
 
 ### Passo 4: Hospedar o site (Deploy do Front-end)
-Como o projeto é estático (apenas HTML, CSS e JS), você pode hospedá-lo gratuitamente em diversas plataformas. As mais recomendadas são:
+Como o projeto é totalmente estático (apenas arquivos HTML, CSS e JS, sem necessidade de Node.js no servidor), você pode hospedá-lo praticamente em qualquer lugar.
 
+**Opção A: Infraestrutura Própria (Proxmox / On-Premise)**
+Se você for subir internamente em um servidor próprio (ex: uma VM ou LXC no seu Proxmox), basta usar qualquer servidor web padrão:
+1. Instale um servidor web como **Nginx** ou **Apache** na sua máquina virtual.
+2. Copie todos os arquivos desta pasta raiz para o diretório público do servidor (por exemplo, `/var/www/html/` no Ubuntu/Debian).
+3. Certifique-se de que o servidor está apontando para o arquivo `index.html`. Pronto! O sistema já estará rodando internamente na sua rede.
+*(Também é perfeitamente possível usar uma imagem simples do Docker, como a `nginx:alpine`, mapeando esta pasta para dentro do container).*
+
+**Opção B: Hospedagem em Nuvem (Gratuita)**
+Caso prefira não usar infraestrutura própria, plataformas gratuitas resolvem perfeitamente:
 - **GitHub Pages:** Vá nas configurações do seu repositório no GitHub, procure pela aba "Pages" e ative o deploy a partir da branch `main`.
-- **Vercel / Netlify:** Crie uma conta, vincule seu repositório do GitHub e clique em "Deploy". Em poucos segundos seu site estará no ar com um link público.
+- **Vercel / Netlify:** Vincule seu repositório do GitHub e clique em "Deploy". Em poucos segundos seu site estará no ar com um link público.
 
 ---
 
