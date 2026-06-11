@@ -191,14 +191,24 @@ function _renderFotoGallery(fotos) {
                border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:20px;text-align:center;">×</button>
     </div>`).join('') +
     (fotos.length < MAX ? `
-      <label style="width:80px;height:80px;border:2px dashed var(--border);border-radius:8px;
-                    display:flex;flex-direction:column;align-items:center;justify-content:center;
-                    cursor:pointer;color:var(--text3);font-size:11px;gap:4px;transition:.15s;"
-             onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
-             onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">
-        <span style="font-size:24px;"><i class="bi bi-camera"></i></span>Upload
-        <input type="file" accept="image/*" multiple style="display:none;" onchange="uploadFotos(this)">
-      </label>` : '');
+      <div style="display:flex;gap:8px;">
+        <label style="width:80px;height:80px;border:2px dashed var(--border);border-radius:8px;
+                      display:flex;flex-direction:column;align-items:center;justify-content:center;
+                      cursor:pointer;color:var(--text3);font-size:11px;gap:4px;transition:.15s;"
+               onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+               onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">
+          <span style="font-size:24px;"><i class="bi bi-camera"></i></span>Câmera
+          <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="uploadFotos(this)">
+        </label>
+        <label style="width:80px;height:80px;border:2px dashed var(--border);border-radius:8px;
+                      display:flex;flex-direction:column;align-items:center;justify-content:center;
+                      cursor:pointer;color:var(--text3);font-size:11px;gap:4px;transition:.15s;"
+               onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+               onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">
+          <span style="font-size:24px;"><i class="bi bi-images"></i></span>Galeria
+          <input type="file" accept="image/*" multiple style="display:none;" onchange="uploadFotos(this)">
+        </label>
+      </div>` : '');
 }
 
 async function uploadFotos(input) {
