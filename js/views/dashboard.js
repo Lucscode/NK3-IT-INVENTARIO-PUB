@@ -86,14 +86,30 @@ async function renderDashboard() {
     }).join('') || `<div style="padding:24px;text-align:center;color:var(--text2);font-size:13px;">Nenhuma atividade registrada</div>`;
   }
 
+let currentPageAlerts = 1;
+const ALERTS_PER_PAGE = 10;
+
+window.changePageAlerts = function(p) {
+  currentPageAlerts = p;
+  renderDashboard();
+};
+
   // Alertas de garantia
   const hoje = new Date();
   const em90 = new Date(); em90.setDate(em90.getDate() + 90);
   const alertasGarantia = ativos.filter(a => a.garantia && new Date(a.garantia) < em90);
   const alertsEl = document.getElementById('dashAlerts');
+  
   if (alertsEl) {
-    alertsEl.innerHTML = alertasGarantia.length
-      ? alertasGarantia.map(a => {
+    const totalAlerts = alertasGarantia.length;
+    const totalPagesAlerts = Math.ceil(totalAlerts / ALERTS_PER_PAGE) || 1;
+    if (currentPageAlerts > totalPagesAlerts) currentPageAlerts = totalPagesAlerts;
+    const startIdx = (currentPageAlerts - 1) * ALERTS_PER_PAGE;
+    const pagedAlerts = alertasGarantia.slice(startIdx, startIdx + ALERTS_PER_PAGE);
+
+    let html = '';
+    if (pagedAlerts.length) {
+      html += pagedAlerts.map(a => {
         const exp = new Date(a.garantia) < hoje;
         const alertIcon = exp ? 'bi-exclamation-triangle-fill' : 'bi-calendar-event';
         return `<div class="alert ${exp ? 'alert-warn' : 'alert-info'}" style="margin-bottom:8px;">
@@ -101,8 +117,19 @@ async function renderDashboard() {
             <span style="font-size:11px;opacity:.7;">(${a.patrimonio})</span>:
             garantia ${exp ? 'expirada' : 'expira'} em ${fmtDate(a.garantia)}
           </div>`;
-      }).join('')
-      : `<div style="color:var(--text2);font-size:13px;padding:12px 0;">Nenhum alerta de garantia.</div>`;
+      }).join('');
+
+      if (totalPagesAlerts > 1) {
+        html += `<div style="display:flex; justify-content:center; align-items:center; gap:16px; margin-top:12px;">
+          <button class="btn btn-ghost btn-sm" onclick="changePageAlerts(${currentPageAlerts - 1})" ${currentPageAlerts === 1 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>← Anterior</button>
+          <span style="font-size:11px; color:var(--text2); font-weight:600;">Página ${currentPageAlerts} de ${totalPagesAlerts}</span>
+          <button class="btn btn-ghost btn-sm" onclick="changePageAlerts(${currentPageAlerts + 1})" ${currentPageAlerts === totalPagesAlerts ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Próxima →</button>
+        </div>`;
+      }
+    } else {
+      html = `<div style="color:var(--text2);font-size:13px;padding:12px 0;">Nenhum alerta de garantia.</div>`;
+    }
+    alertsEl.innerHTML = html;
   }
 }
 

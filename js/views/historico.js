@@ -1,4 +1,13 @@
 // ===================== HISTÓRICO =====================
+let currentPageHist = 1;
+const HIST_PER_PAGE = 10;
+
+window.changePageHist = function(p) {
+  currentPageHist = p;
+  renderHistorico();
+  document.querySelector('.main').scrollTo({ top: 0, behavior: 'smooth' });
+};
+
 async function renderHistorico() {
   const hist = await dbGetHistorico();
   _cacheHistorico = hist;
@@ -14,13 +23,18 @@ async function renderHistorico() {
   const sub = document.getElementById('pageSub');
   if (sub) sub.textContent = 'Registro de movimentações dos ativos';
 
-  // Extrai patrimônio do nome: "Dell XPS (TI-001)" → "TI-001"
   function extractPatri(nome) {
     const m = (nome||'').match(/\(([^)]+)\)/);
     return m ? m[1] : '';
   }
 
-  document.getElementById('histTableBody').innerHTML = list.map(h => {
+  const totalItems = list.length;
+  const totalPagesHist = Math.ceil(totalItems / HIST_PER_PAGE) || 1;
+  if (currentPageHist > totalPagesHist) currentPageHist = totalPagesHist;
+  const startIdx = (currentPageHist - 1) * HIST_PER_PAGE;
+  const pagedList = list.slice(startIdx, startIdx + HIST_PER_PAGE);
+
+  let html = pagedList.map(h => {
     // Detect event type from obs field or dates
     let tipo, cor;
     if (h.obs && h.obs.startsWith('Exclusão')) {
@@ -62,4 +76,15 @@ async function renderHistorico() {
       </td>
     </tr>`;
   }).join('') || `<tr><td colspan="3" style="text-align:center;padding:40px;color:var(--text2);">Nenhum histórico registrado</td></tr>`;
+
+  if (totalPagesHist > 1) {
+    html += `<tr><td colspan="3" style="padding:16px; border-bottom: none;">
+      <div style="display:flex; justify-content:center; align-items:center; gap:16px;">
+        <button class="btn btn-ghost" onclick="changePageHist(${currentPageHist - 1})" ${currentPageHist === 1 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Anterior</button>
+        <span style="font-size:13px; color:var(--text2); font-weight:600;">Página ${currentPageHist} de ${totalPagesHist}</span>
+        <button class="btn btn-ghost" onclick="changePageHist(${currentPageHist + 1})" ${currentPageHist === totalPagesHist ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Próxima</button>
+      </div>
+    </td></tr>`;
+  }
+  document.getElementById('histTableBody').innerHTML = html;
 }
