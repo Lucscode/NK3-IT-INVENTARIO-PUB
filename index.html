@@ -1083,11 +1083,20 @@
           <div class="form-group"><label>Complemento</label><input type="text" id="adminSolComplemento" placeholder="Apto, bloco, etc."></div>
         </div>
 
-        <div style="margin-top: 32px; display: flex; align-items: flex-start; gap: 12px;">
-          <input type="checkbox" id="adminSolKit" style="width: 18px; height: 18px; accent-color: var(--accent); margin-top: 2px; cursor: pointer;">
-          <div>
-            <label for="adminSolKit" style="font-weight: 600; color: var(--text); cursor: pointer; display: block; margin-bottom: 2px;">Incluir kit boas-vindas</label>
-            <span style="font-size: 13px; color: var(--text2);">Mochila, squeeze, lapiseira, caderno e mousepad</span>
+        <div style="margin-top: 32px; display: flex; align-items: flex-start; gap: 12px; flex-direction: column;">
+          <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <input type="checkbox" id="adminSolTroca" style="width: 18px; height: 18px; accent-color: var(--accent); margin-top: 2px; cursor: pointer;">
+            <div>
+              <label for="adminSolTroca" style="font-weight: 600; color: var(--text); cursor: pointer; display: block; margin-bottom: 2px;">É uma Troca de Máquina?</label>
+              <span style="font-size: 13px; color: var(--text2);">Marque caso a solicitação seja para substituição de equipamento.</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 12px; margin-top: 12px;">
+            <input type="checkbox" id="adminSolKit" style="width: 18px; height: 18px; accent-color: var(--accent); margin-top: 2px; cursor: pointer;">
+            <div>
+              <label for="adminSolKit" style="font-weight: 600; color: var(--text); cursor: pointer; display: block; margin-bottom: 2px;">Incluir kit boas-vindas</label>
+              <span style="font-size: 13px; color: var(--text2);">Mochila, squeeze, lapiseira, caderno e mousepad</span>
+            </div>
           </div>
         </div>
 

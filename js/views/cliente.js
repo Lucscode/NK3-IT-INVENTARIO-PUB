@@ -49,11 +49,20 @@ async function renderClientTab(tab) {
           <div class="form-group"><label>Complemento</label><input type="text" id="solComplemento" placeholder="Apto, bloco, etc."></div>
         </div>
 
-        <div style="margin-top: 32px; display: flex; align-items: flex-start; gap: 12px;">
-          <input type="checkbox" id="solKit" style="width: 18px; height: 18px; accent-color: var(--accent); margin-top: 2px; cursor: pointer;">
-          <div>
-            <label for="solKit" style="font-weight: 600; color: var(--text); cursor: pointer; display: block; margin-bottom: 2px;">Incluir kit boas-vindas</label>
-            <span style="font-size: 13px; color: var(--text2);">Mochila, squeeze, lapiseira, caderno e mousepad</span>
+        <div style="margin-top: 32px; display: flex; align-items: flex-start; gap: 12px; flex-direction: column;">
+          <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <input type="checkbox" id="solTroca" style="width: 18px; height: 18px; accent-color: var(--accent); margin-top: 2px; cursor: pointer;">
+            <div>
+              <label for="solTroca" style="font-weight: 600; color: var(--text); cursor: pointer; display: block; margin-bottom: 2px;">É uma Troca de Máquina?</label>
+              <span style="font-size: 13px; color: var(--text2);">Marque caso a solicitação seja para substituição de equipamento.</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 12px; margin-top: 12px;">
+            <input type="checkbox" id="solKit" style="width: 18px; height: 18px; accent-color: var(--accent); margin-top: 2px; cursor: pointer;">
+            <div>
+              <label for="solKit" style="font-weight: 600; color: var(--text); cursor: pointer; display: block; margin-bottom: 2px;">Incluir kit boas-vindas</label>
+              <span style="font-size: 13px; color: var(--text2);">Mochila, squeeze, lapiseira, caderno e mousepad</span>
+            </div>
           </div>
         </div>
 
@@ -101,7 +110,9 @@ async function renderClientTab(tab) {
             </thead>
             <tbody>
               ${list.map(s => `<tr>
-                <td><b>${s.nome || s.colaborador || s.colab || '—'}</b></td>
+                <td><b>${s.nome || s.colaborador || s.colab || '—'}</b>
+                  ${s.obs && s.obs.includes('[TROCA DE MÁQUINA]') ? '<br><span class="badge" style="background:#8b5cf6;color:white;font-size:10px;padding:2px 4px;margin-top:4px;display:inline-block;">Troca de Máquina</span>' : ''}
+                </td>
                 <td>${fmtDate(s.inicio)}</td>
                 <td>${s.kit ? '<span class="badge badge-green">Sim</span>' : '<span class="badge badge-gray">Não</span>'}</td>
                 <td>${statusBadge(s.status)}</td>
@@ -316,6 +327,10 @@ async function enviarSolicitacao() {
   let finalObs = document.getElementById('solObs').value.trim();
   if (acessorios.length > 0) {
     finalObs = `[Acessórios: ${acessorios.join(', ')}]\n\n` + finalObs;
+  }
+  const isTroca = document.getElementById('solTroca') && document.getElementById('solTroca').checked;
+  if (isTroca) {
+    finalObs = `[TROCA DE MÁQUINA]\n\n` + finalObs;
   }
 
   await dbCreateSolicitacao({

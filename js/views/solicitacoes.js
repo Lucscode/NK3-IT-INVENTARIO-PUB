@@ -13,14 +13,23 @@ async function renderSolicitacoes() {
   const paginatedList = list.slice(startIndex, startIndex + ITEMS_PER_PAGE_SOL);
 
   document.getElementById('solTableBody').innerHTML = paginatedList.map(s => `<tr>
-    <td><b>${s.nome || s.colaborador || s.colab || '—'}</b><br><span style="font-size:11px;color:var(--text2);">${s.email || ''}</span></td>
+    <td><b>${s.nome || s.colaborador || s.colab || '—'}</b><br><span style="font-size:11px;color:var(--text2);">${s.email || ''}</span>
+      ${s.obs && s.obs.includes('[TROCA DE MÁQUINA]') ? '<br><span class="badge" style="background:#8b5cf6;color:white;font-size:10px;padding:2px 4px;margin-top:4px;display:inline-block;">Troca de Máquina</span>' : ''}
+    </td>
     <td>${s.cpf || '—'}</td>
     <td>${fmtDate(s.inicio)}</td>
     <td>${s.kit ? '<span class="badge badge-green">Sim</span>' : '<span class="badge badge-gray">Não</span>'}</td>
     <td>
       <select onchange="updateSolStatus('${s.id}',this.value)"
-        style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;font-family:var(--sans);cursor:pointer;">
-        ${statusOpts.map(o => `<option value="${o}" ${s.status === o ? 'selected' : ''}>${o.charAt(0).toUpperCase() + o.slice(1)}</option>`).join('')}
+        style="${
+          s.status === 'entregue' ? 'background:#dcfce7;color:#16a34a;border:1px solid #bbf7d0;' :
+          s.status === 'enviado' ? 'background:#fef9c3;color:#ca8a04;border:1px solid #fde047;' :
+          s.status === 'pendente' ? 'background:#f3f4f6;color:#6b7280;border:1px solid #e5e7eb;' :
+          s.status === 'em andamento' ? 'background:#dbeafe;color:#2563eb;border:1px solid #bfdbfe;' :
+          s.status === 'cancelado' ? 'background:#fee2e2;color:#dc2626;border:1px solid #fecaca;' :
+          'background:var(--bg3);color:var(--text);border:1px solid var(--border);'
+        }border-radius:6px;padding:4px 8px;font-size:12px;font-family:var(--sans);cursor:pointer;font-weight:600;">
+        ${statusOpts.map(o => `<option value="${o}" ${s.status === o ? 'selected' : ''} style="background:#fff;color:#333;font-weight:normal;">${o.charAt(0).toUpperCase() + o.slice(1)}</option>`).join('')}
       </select>
     </td>
     <td>
@@ -187,6 +196,7 @@ function openNovaSolicitacao() {
   document.getElementById('adminSolNumero').value = '';
   document.getElementById('adminSolComplemento').value = '';
   document.getElementById('adminSolKit').checked = false;
+  if(document.getElementById('adminSolTroca')) document.getElementById('adminSolTroca').checked = false;
   document.querySelectorAll('.adminSolAcessorio').forEach(el => el.checked = false);
   document.getElementById('adminSolObs').value = '';
 
@@ -217,6 +227,10 @@ async function enviarSolicitacaoAdmin() {
   let finalObs = document.getElementById('adminSolObs').value.trim();
   if (acessorios.length > 0) {
     finalObs = `[Acessórios: ${acessorios.join(', ')}]\n\n` + finalObs;
+  }
+  const isTroca = document.getElementById('adminSolTroca') && document.getElementById('adminSolTroca').checked;
+  if (isTroca) {
+    finalObs = `[TROCA DE MÁQUINA]\n\n` + finalObs;
   }
 
   await dbCreateSolicitacao({

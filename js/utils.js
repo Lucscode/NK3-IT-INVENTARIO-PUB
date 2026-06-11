@@ -9,7 +9,7 @@ function notify(msg, type = 'success') {
 }
 function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('pt-BR'); }
 function statusBadge(s) {
-  const map = { 'disponivel': 'badge-green', 'em uso': 'badge-blue', 'manutencao': 'badge-yellow', 'estoque': 'badge-gray', 'descartado': 'badge-red', 'quebrado': 'badge-red', 'ativo': 'badge-green', 'inativo': 'badge-gray', 'pendente': 'badge-yellow', 'em preparacao': 'badge-blue', 'em andamento': 'badge-blue', 'enviado': 'badge-purple', 'entregue': 'badge-green', 'cancelado': 'badge-red', 'saindo para envio': 'badge-purple', 'nao postado ainda': 'badge-yellow' };
+  const map = { 'disponivel': 'badge-green', 'em uso': 'badge-blue', 'manutencao': 'badge-yellow', 'estoque': 'badge-gray', 'descartado': 'badge-red', 'quebrado': 'badge-red', 'ativo': 'badge-green', 'inativo': 'badge-gray', 'pendente': 'badge-gray', 'em preparacao': 'badge-blue', 'em andamento': 'badge-blue', 'enviado': 'badge-yellow', 'entregue': 'badge-green', 'cancelado': 'badge-red', 'saindo para envio': 'badge-yellow', 'nao postado ainda': 'badge-gray' };
   const labels = { 'disponivel': 'Disponível', 'em uso': 'Em Uso', 'manutencao': 'Manutenção', 'estoque': 'Estoque', 'descartado': 'Descartado', 'quebrado': 'Quebrado', 'ativo': 'Ativo', 'inativo': 'Inativo', 'pendente': 'Pendente', 'em preparacao': 'Em Preparação', 'em andamento': 'Em Andamento', 'enviado': 'Enviado', 'entregue': 'Entregue', 'cancelado': 'Cancelado', 'saindo para envio': 'Saindo para envio', 'nao postado ainda': 'Não postado ainda' };
   return `<span class="badge ${map[s] || 'badge-gray'}"><span class="dot"></span>${labels[s] || s}</span>`;
 }
@@ -19,9 +19,9 @@ function kitStatusBadge(h) {
   if (h.cancelado) return '<span class="badge badge-red"><span class="dot"></span>Cancelado</span>';
   const s = h.status || 'pendente';
   const map = {
-    'pendente':      { cls: 'badge-yellow',  label: 'Pendente' },
+    'pendente':      { cls: 'badge-gray',    label: 'Pendente' },
     'em preparacao': { cls: 'badge-blue',    label: 'Em Preparação' },
-    'enviado':       { cls: 'badge-purple',  label: 'Enviado' },
+    'enviado':       { cls: 'badge-yellow',  label: 'Enviado' },
     'entregue':      { cls: 'badge-green',   label: 'Entregue' },
   };
   const { cls, label } = map[s] || { cls: 'badge-gray', label: s };
