@@ -152,8 +152,8 @@
 @media (max-width: 768px) {
   .hide-mobile { display: none !important; }
   .topbar-title { font-size: 16px; }
-  .topbar-sub { font-size: 11px; }
-  .topbar { flex-wrap: wrap; height: auto; padding: 12px 16px; }
+  .topbar-sub { display: none; }
+  .topbar { flex-wrap: wrap; height: auto; padding: 12px 16px; gap: 8px; }
   .topbar-search { width: 100%; order: 4; margin-top: 4px; }
 }
 
