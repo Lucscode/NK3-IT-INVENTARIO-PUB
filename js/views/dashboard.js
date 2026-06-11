@@ -1,4 +1,12 @@
 // ===================== DASHBOARD =====================
+let currentPageAlerts = 1;
+const ALERTS_PER_PAGE = 10;
+
+window.changePageAlerts = function(p) {
+  currentPageAlerts = p;
+  renderDashboard();
+};
+
 async function renderDashboard() {
   // Stats
   const stats = await dbGetStats();
@@ -86,13 +94,7 @@ async function renderDashboard() {
     }).join('') || `<div style="padding:24px;text-align:center;color:var(--text2);font-size:13px;">Nenhuma atividade registrada</div>`;
   }
 
-let currentPageAlerts = 1;
-const ALERTS_PER_PAGE = 10;
 
-window.changePageAlerts = function(p) {
-  currentPageAlerts = p;
-  renderDashboard();
-};
 
   // Alertas de garantia
   const hoje = new Date();
