@@ -193,6 +193,21 @@ async function exportCSV(type) {
       const data = await dbGetKitEstoque();
       headers = ['item','quantidade'];
       rows = Object.entries(data).map(([k, v]) => [k, v]);
+      
+    } else if (type === 'solicitacoes') {
+      const data = await dbGetSolicitacoes();
+      headers = ['id','colaborador','cpf','email','inicio','cep','bairro','rua','numero','complemento','kit_boas_vindas','status','rastreio','observacoes','criado_em'];
+      rows = data.map(s => [s.id, s.nome || s.colaborador || s.colab || '', s.cpf || '', s.email || '', s.inicio || '', s.cep || '', s.bairro || '', s.rua || '', s.numero || '', s.complemento || '', s.kit ? 'Sim' : 'Não', s.status || '', s.rastreio || '', s.obs || '', s.created_at || '']);
+      
+    } else if (type === 'devolucoes') {
+      const data = await dbGetDevolucoes();
+      headers = ['id','colaborador','maquina','motivo','codigo_correios','validade','observacoes','criado_em'];
+      rows = data.map(d => [d.id, d.colab || '', d.maquina || '', d.motivo || '', d.codigo || '', d.validade || '', d.obs || '', d.created_at || '']);
+
+    } else if (type === 'kit_historico') {
+      const data = await dbGetKitHistorico();
+      headers = ['id','colaborador','quantidade','data','observacoes','status','rastreio','cancelado','criado_em'];
+      rows = data.map(h => [h.id, h.colab || '', h.quantidade || 0, h.data || '', h.obs || '', h.status || '', h.rastreio || '', h.cancelado ? 'Sim' : 'Não', h.created_at || '']);
     }
 
     csv = [headers.join(','), ...rows.map(r =>
