@@ -238,7 +238,7 @@ function renderCharts(ativos) {
   if (ctxStatus) {
     const statusCounts = { 'disponivel': 0, 'em uso': 0, 'manutencao': 0, 'estoque': 0, 'outros': 0 };
     ativos.forEach(a => {
-      const s = (a.status || '').toLowerCase();
+      const s = (a.status || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
       if (statusCounts[s] !== undefined) statusCounts[s]++;
       else statusCounts['outros']++;
     });
@@ -296,7 +296,12 @@ function renderCharts(ativos) {
   if (ctxTipos) {
     const tipos = {};
     ativos.forEach(a => {
-      const t = a.tipo || 'Sem Tipo';
+      let t = (a.tipo || '').trim();
+      if (!t) {
+        t = 'Sem Tipo';
+      } else {
+        t = t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+      }
       tipos[t] = (tipos[t] || 0) + 1;
     });
     
