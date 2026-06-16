@@ -2,6 +2,10 @@
 let currentPageAlerts = 1;
 const ALERTS_PER_PAGE = 10;
 
+let chartStatusInstance = null;
+let chartTiposInstance = null;
+let chartOSInstance = null;
+
 window.changePageAlerts = function(p) {
   currentPageAlerts = p;
   renderDashboard();
@@ -22,6 +26,10 @@ async function renderDashboard() {
   // Ativos recentes — grid de cards com foto (6 últimos)
   let ativos = await dbGetAtivos();
   _cacheAtivos = ativos;
+  
+  const offCount = ativos.filter(a => (a.rmm_status === 'offline' || a.rmm_status === 'overdue') && (a.status || '').toLowerCase() === 'em uso').length;
+  const offEl = document.getElementById('statOffline');
+  if (offEl) offEl.textContent = offCount;
 
   const tipoFilter = document.getElementById('dashFilterTipo')?.value || '';
   const statusFilter = document.getElementById('dashFilterStatus')?.value || '';
@@ -96,28 +104,77 @@ async function renderDashboard() {
 
 
 
-  // Alertas de garantia
+  // Atenção Crítica (Health Checks)
+  const alerts = [];
   const hoje = new Date();
-  const em90 = new Date(); em90.setDate(em90.getDate() + 90);
-  const alertasGarantia = ativos.filter(a => a.garantia && new Date(a.garantia) < em90);
+  const em30 = new Date(); em30.setDate(em30.getDate() + 30);
+  
+  ativos.forEach(a => {
+    // 1. Offline (apenas se a máquina está marcada como 'em uso')
+    if ((a.rmm_status === 'offline' || a.rmm_status === 'overdue') && (a.status || '').toLowerCase() === 'em uso') {
+      alerts.push({
+        id: a.id, nome: a.nome, patrimonio: a.patrimonio,
+        type: 'danger', icon: 'bi-wifi-off', title: 'Máquina Offline',
+        msg: `Sem comunicação com o RMM.`
+      });
+    }
+    // 2. Disco Cheio
+    if (parseInt(a.rmm_disk_percent) >= 95) {
+      alerts.push({
+        id: a.id, nome: a.nome, patrimonio: a.patrimonio,
+        type: 'danger', icon: 'bi-device-hdd', title: 'Disco Crítico',
+        msg: `${a.rmm_disk_percent}% de uso.`
+      });
+    }
+    // 3. Memória
+    if (parseInt(a.rmm_mem_percent) >= 95) {
+      alerts.push({
+        id: a.id, nome: a.nome, patrimonio: a.patrimonio,
+        type: 'warn', icon: 'bi-memory', title: 'Memória Alta',
+        msg: `${a.rmm_mem_percent}% de uso.`
+      });
+    }
+    // 4. Garantia
+    if (a.garantia) {
+      const dataGarantia = new Date(a.garantia);
+      if (dataGarantia < hoje) {
+        alerts.push({
+          id: a.id, nome: a.nome, patrimonio: a.patrimonio,
+          type: 'danger', icon: 'bi-exclamation-triangle-fill', title: 'Garantia Vencida',
+          msg: `Expirou em ${fmtDate(a.garantia)}`
+        });
+      } else if (dataGarantia < em30) {
+        alerts.push({
+          id: a.id, nome: a.nome, patrimonio: a.patrimonio,
+          type: 'warn', icon: 'bi-calendar-event', title: 'Garantia Próxima',
+          msg: `Expira em ${fmtDate(a.garantia)}`
+        });
+      }
+    }
+  });
+
+  // Ordenar perigosos primeiro
+  alerts.sort((a, b) => a.type === 'danger' && b.type !== 'danger' ? -1 : (a.type !== 'danger' && b.type === 'danger' ? 1 : 0));
+
   const alertsEl = document.getElementById('dashAlerts');
   
   if (alertsEl) {
-    const totalAlerts = alertasGarantia.length;
+    const totalAlerts = alerts.length;
     const totalPagesAlerts = Math.ceil(totalAlerts / ALERTS_PER_PAGE) || 1;
     if (currentPageAlerts > totalPagesAlerts) currentPageAlerts = totalPagesAlerts;
     const startIdx = (currentPageAlerts - 1) * ALERTS_PER_PAGE;
-    const pagedAlerts = alertasGarantia.slice(startIdx, startIdx + ALERTS_PER_PAGE);
+    const pagedAlerts = alerts.slice(startIdx, startIdx + ALERTS_PER_PAGE);
 
     let html = '';
     if (pagedAlerts.length) {
-      html += pagedAlerts.map(a => {
-        const exp = new Date(a.garantia) < hoje;
-        const alertIcon = exp ? 'bi-exclamation-triangle-fill' : 'bi-calendar-event';
-        return `<div class="alert ${exp ? 'alert-warn' : 'alert-info'}" style="margin-bottom:8px;">
-            <i class="bi ${alertIcon}"></i> <b>${a.nome}</b>
-            <span style="font-size:11px;opacity:.7;">(${a.patrimonio})</span>:
-            garantia ${exp ? 'expirada' : 'expira'} em ${fmtDate(a.garantia)}
+      html += pagedAlerts.map(al => {
+        const bgClass = al.type === 'danger' ? 'alert-warn' : 'alert-info';
+        return `<div class="alert ${bgClass}" style="margin-bottom:8px; cursor:pointer; display:flex; gap:8px; align-items:flex-start;" onclick="goTo('ativos');setTimeout(()=>openDetalhe('${al.id}'),300)">
+            <i class="bi ${al.icon}" style="margin-top:2px;"></i> 
+            <div style="flex:1;">
+              <div style="font-size:12px; font-weight:700;">${al.title}: ${al.nome} <span style="font-size:10px; font-weight:normal; opacity:.7;">(${al.patrimonio})</span></div>
+              <div style="font-size:11px; margin-top:2px; opacity:0.9;">${al.msg}</div>
+            </div>
           </div>`;
       }).join('');
 
@@ -129,10 +186,13 @@ async function renderDashboard() {
         </div>`;
       }
     } else {
-      html = `<div style="color:var(--text2);font-size:13px;padding:12px 0;">Nenhum alerta de garantia.</div>`;
+      html = `<div style="color:var(--text2);font-size:13px;padding:12px 0;"><i class="bi bi-check-circle" style="color:var(--success);margin-right:6px;"></i> Nenhum alerta crítico detectado.</div>`;
     }
     alertsEl.innerHTML = html;
   }
+
+  // Renderizar Gráficos
+  renderCharts(_cacheAtivos);
 }
 
 async function updateStats() {
@@ -159,4 +219,181 @@ function refreshColabDatalist() {
     const el = document.getElementById(id);
     if (el) el.innerHTML = _cacheColabs.map(c => `<option value="${c.nome}">`).join('');
   });
+}
+
+function renderCharts(ativos) {
+  // Config cores baseadas no CSS root
+  const textColor = getComputedStyle(document.body).getPropertyValue('--text').trim() || '#333';
+  const gridColor = getComputedStyle(document.body).getPropertyValue('--border').trim() || '#eee';
+
+  Chart.defaults.color = textColor;
+  Chart.defaults.font.family = 'DM Sans, sans-serif';
+
+  // 1. Status Chart (Doughnut)
+  if (chartStatusInstance) chartStatusInstance.destroy();
+  const ctxStatus = document.getElementById('chartStatus');
+  if (ctxStatus) {
+    const statusCounts = { 'disponivel': 0, 'em uso': 0, 'manutencao': 0, 'estoque': 0, 'outros': 0 };
+    ativos.forEach(a => {
+      const s = (a.status || '').toLowerCase();
+      if (statusCounts[s] !== undefined) statusCounts[s]++;
+      else statusCounts['outros']++;
+    });
+    
+    chartStatusInstance = new Chart(ctxStatus, {
+      type: 'doughnut',
+      data: {
+        labels: ['Disponível', 'Em Uso', 'Manutenção', 'Estoque', 'Outros'],
+        datasets: [{
+          data: [statusCounts['disponivel'], statusCounts['em uso'], statusCounts['manutencao'], statusCounts['estoque'], statusCounts['outros']],
+          backgroundColor: ['#10b981', '#8b5cf6', '#f59e0b', '#3b82f6', '#64748b'],
+          borderWidth: 0,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } }
+        },
+        cutout: '70%',
+        onClick: (e, elements) => {
+          if (elements.length > 0) {
+            const index = elements[0].index;
+            const label = chartStatusInstance.data.labels[index];
+            const filterMap = { 'Disponível': 'disponivel', 'Em Uso': 'em uso', 'Manutenção': 'manutencao', 'Estoque': 'estoque' };
+            const val = filterMap[label] || 'todos';
+            
+            // Set filter in Ativos page if it's available globally or via element
+            if (typeof filterAtivos === 'function') {
+              filterAtivos(val);
+            } else {
+              const sel = document.getElementById('ativoStatusSelect');
+              if (sel) sel.value = val;
+            }
+            goTo('ativos');
+            
+            setTimeout(() => {
+              const sel = document.getElementById('ativoStatusSelect');
+              if (sel && sel.value !== val) {
+                sel.value = val;
+                if (typeof filterAtivos === 'function') filterAtivos(val);
+              }
+            }, 100);
+          }
+        }
+      }
+    });
+  }
+
+  // 2. Tipos Chart (Bar)
+  if (chartTiposInstance) chartTiposInstance.destroy();
+  const ctxTipos = document.getElementById('chartTipos');
+  if (ctxTipos) {
+    const tipos = {};
+    ativos.forEach(a => {
+      const t = a.tipo || 'Sem Tipo';
+      tipos[t] = (tipos[t] || 0) + 1;
+    });
+    
+    const sortedTipos = Object.entries(tipos).sort((a,b) => b[1] - a[1]);
+    
+    chartTiposInstance = new Chart(ctxTipos, {
+      type: 'bar',
+      data: {
+        labels: sortedTipos.map(i => i[0]),
+        datasets: [{
+          label: 'Quantidade',
+          data: sortedTipos.map(i => i[1]),
+          backgroundColor: '#3b82f6',
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: gridColor }, ticks: { stepSize: 1 } },
+          x: { grid: { display: false } }
+        },
+        onClick: (e, elements) => {
+          if (elements.length > 0) {
+            const index = elements[0].index;
+            const label = chartTiposInstance.data.labels[index];
+            
+            // Set filter in Ativos page
+            if (typeof filterAtivoTipo === 'function') {
+              filterAtivoTipo(label);
+            }
+            goTo('ativos');
+            
+            setTimeout(() => {
+              if (typeof filterAtivoTipo === 'function') filterAtivoTipo(label);
+            }, 100);
+          }
+        }
+      }
+    });
+  }
+
+  // 3. OS Chart (Doughnut)
+  if (chartOSInstance) chartOSInstance.destroy();
+  const ctxOS = document.getElementById('chartOS');
+  if (ctxOS) {
+    const osCounts = {};
+    ativos.forEach(a => {
+      let os = a.so || 'Desconhecido';
+      const osLower = os.toLowerCase();
+      if (osLower.includes('windows 11')) os = 'Windows 11';
+      else if (osLower.includes('windows 10') || osLower.includes('win 10')) os = 'Windows 10';
+      else if (osLower.includes('windows') || osLower.includes('win')) os = 'Windows (Outras Versões)';
+      else if (osLower.includes('mac')) os = 'macOS';
+      else if (osLower.includes('linux') || osLower.includes('ubuntu')) os = 'Linux';
+      else if (os !== 'Desconhecido') os = 'Outros';
+      
+      osCounts[os] = (osCounts[os] || 0) + 1;
+    });
+
+    const sortedOS = Object.entries(osCounts).sort((a,b) => b[1] - a[1]);
+
+    chartOSInstance = new Chart(ctxOS, {
+      type: 'doughnut',
+      data: {
+        labels: sortedOS.map(i => i[0]),
+        datasets: [{
+          data: sortedOS.map(i => i[1]),
+          backgroundColor: ['#0ea5e9', '#0284c7', '#f43f5e', '#eab308', '#94a3b8'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } }
+        },
+        cutout: '70%',
+        onClick: (e, elements) => {
+          if (elements.length > 0) {
+            const index = elements[0].index;
+            let label = chartOSInstance.data.labels[index];
+            if (label === 'Outros' || label === 'Desconhecido') label = '';
+            
+            const searchEl = document.getElementById('globalSearch');
+            if (searchEl) searchEl.value = label;
+            
+            goTo('ativos');
+            
+            setTimeout(() => {
+              const el = document.getElementById('globalSearch');
+              if (el) el.value = label;
+              if (typeof window.renderAtivos === 'function') window.renderAtivos();
+            }, 100);
+          }
+        }
+      }
+    });
+  }
 }

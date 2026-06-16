@@ -25,6 +25,9 @@ async function renderDevolucoes() {
         ${d.patrimonio ? `<br><span style="font-size:11px;color:var(--text2);">${d.patrimonio}</span>` : ''}
       </td>
       <td>
+        <span class="text-mono" style="font-size:12px;color:var(--accent);">${d.codigo_devolucao || '—'}</span>
+      </td>
+      <td>
         ${fmtDate(d.validade) || '—'}
       </td>
       <td>
@@ -44,7 +47,7 @@ async function renderDevolucoes() {
         </div>
       </td>
     </tr>`;
-  }).join('') || `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text2);">Nenhuma devolução registrada</td></tr>`;
+  }).join('') || `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text2);">Nenhuma devolução registrada</td></tr>`;
 
   const pagContainer = document.getElementById('devPagination');
   if (pagContainer) {

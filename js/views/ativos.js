@@ -33,7 +33,11 @@ async function renderAtivos() {
   }
 
   if (currentAtivoFilter !== 'todos') {
-    list = list.filter(a => _normS(a.status) === _normS(currentAtivoFilter));
+    if (currentAtivoFilter === 'offline') {
+      list = list.filter(a => (a.rmm_status === 'offline' || a.rmm_status === 'overdue') && _normS(a.status) === 'em uso');
+    } else {
+      list = list.filter(a => _normS(a.status) === _normS(currentAtivoFilter));
+    }
   }
   const search = document.getElementById('globalSearch').value.toLowerCase();
   if (search) list = list.filter(a =>
@@ -316,28 +320,136 @@ async function openDetalhe(id) {
     : `<div style="width:90px;height:70px;background:var(--bg3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:16px;color:var(--text3);"><i class="bi bi-${a.emoji || 'laptop'}"></i></div>`;
 
   document.getElementById('modalDetalheBody').innerHTML = `
-    <div style="display:flex;gap:20px;margin-bottom:20px;align-items:flex-start;">
+    <!-- Cabeçalho Principal -->
+    <div style="display:flex;gap:20px;margin-bottom:24px;align-items:flex-start;padding-bottom:20px;border-bottom:1px solid var(--border);">
       ${fotoHtml}
-      <div>
-        <div style="font-size:20px;font-weight:800;margin-bottom:4px;">${a.nome}</div>
-        <div style="font-family:var(--mono);font-size:12px;color:var(--text2);margin-bottom:8px;">
-          ${a.patrimonio} • ${a.tipo || ''}${a.marca ? ` • ${a.marca}` : ''}${a.modelo ? ` ${a.modelo}` : ''}
+      <div style="flex:1;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-size:20px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px;">
+              ${a.nome} <span style="font-family:var(--mono);font-size:12px;font-weight:normal;color:var(--text3);background:var(--bg3);padding:2px 6px;border-radius:4px;">${a.patrimonio}</span>
+            </div>
+            <div style="font-size:13px;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+              <i class="bi bi-${a.emoji || 'laptop'}"></i> ${a.marca || ''} ${a.modelo || ''} 
+              ${a.so ? `<span style="margin:0 6px;color:var(--border);">|</span><i class="bi bi-windows"></i> ${a.so}` : ''}
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:300px;">
+            ${a.rmm_status ? `<span class="badge" style="background:${a.rmm_status === 'online' ? 'var(--success)' : 'var(--danger)'};color:#fff;"><i class="bi ${a.rmm_status === 'online' ? 'bi-check-circle' : 'bi-x-circle'}"></i> RMM: ${a.rmm_status.toUpperCase()}</span>` : ''}
+            ${statusBadge(a.status)} ${saudeBadge(a.saude)} ${garantiaBadge(a.garantia)}
+          </div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">${statusBadge(a.status)} ${saudeBadge(a.saude)} ${garantiaBadge(a.garantia)}</div>
       </div>
     </div>
-    <div class="detail-grid" style="margin-bottom:20px;">
-      <div class="detail-item"><div class="detail-label">Processador</div><div class="detail-value">${a.proc || '—'}</div></div>
-      <div class="detail-item"><div class="detail-label">RAM</div><div class="detail-value">${a.ram || '—'}</div></div>
-      <div class="detail-item"><div class="detail-label">Armazenamento</div><div class="detail-value">${a.disco || '—'}</div></div>
-      <div class="detail-item"><div class="detail-label">Sistema Operacional</div><div class="detail-value">${a.so || '—'}</div></div>
-      <div class="detail-item"><div class="detail-label">Nº de Série</div><div class="detail-value text-mono">${a.serie || '—'}</div></div>
-      <div class="detail-item"><div class="detail-label">Garantia até</div><div class="detail-value">${fmtDate(a.garantia) || 'Sem garantia'}</div></div>
-      <div class="detail-item"><div class="detail-label">Colaborador</div><div class="detail-value">${a.colab || '—'}</div></div>
-      <div class="detail-item"><div class="detail-label">Localização</div><div class="detail-value">${a.localizacao || '—'}</div></div>
+
+    <!-- Corpo com Duas Colunas -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:24px;margin-bottom:20px;">
+      
+      <!-- Coluna Esquerda: Hardware Details -->
+      <div style="background:var(--bg2);padding:16px;border-radius:8px;border:1px solid var(--border);">
+        <h3 style="font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3);margin-bottom:16px;margin-top:0;">Detalhes de Hardware</h3>
+        
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-size:18px;color:var(--text2);width:24px;text-align:center;"><i class="bi bi-cpu"></i></div>
+            <div>
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;">Processador</div>
+              <div style="font-size:13px;font-weight:500;color:var(--text);">${a.proc || '—'}</div>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-size:18px;color:var(--text2);width:24px;text-align:center;"><i class="bi bi-memory"></i></div>
+            <div style="flex:1;">
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;">Memória RAM</div>
+              <div style="font-size:13px;font-weight:500;color:var(--text);">${a.ram || '—'}</div>
+              ${a.rmm_mem_percent ? `
+              <div style="margin-top:6px;background:var(--bg3);height:6px;border-radius:3px;overflow:hidden;width:100%;max-width:200px;">
+                <div style="height:100%;background:${parseInt(a.rmm_mem_percent) > 85 ? 'var(--danger)' : parseInt(a.rmm_mem_percent) > 70 ? 'var(--warning)' : 'var(--success)'};width:${a.rmm_mem_percent}%;"></div>
+              </div>
+              <div style="font-size:10px;color:var(--text3);margin-top:2px;">Uso atual: ${a.rmm_mem_percent}%</div>
+              ` : ''}
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-size:18px;color:var(--text2);width:24px;text-align:center;"><i class="bi bi-device-hdd"></i></div>
+            <div style="flex:1;">
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;">Armazenamento</div>
+              <div style="font-size:13px;font-weight:500;color:var(--text);">${a.disco || '—'}</div>
+              ${a.rmm_disk_percent ? `
+              <div style="margin-top:6px;background:var(--bg3);height:6px;border-radius:3px;overflow:hidden;width:100%;max-width:200px;">
+                <div style="height:100%;background:${parseInt(a.rmm_disk_percent) > 90 ? 'var(--danger)' : parseInt(a.rmm_disk_percent) > 75 ? 'var(--warning)' : 'var(--success)'};width:${a.rmm_disk_percent}%;"></div>
+              </div>
+              <div style="font-size:10px;color:var(--text3);margin-top:2px;">Uso atual: ${a.rmm_disk_percent}%</div>
+              ` : ''}
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-size:18px;color:var(--text2);width:24px;text-align:center;"><i class="bi bi-upc-scan"></i></div>
+            <div>
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;">Número de Série</div>
+              <div style="font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text);">${a.serie || '—'}</div>
+            </div>
+          </div>
+          
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-size:18px;color:var(--text2);width:24px;text-align:center;"><i class="bi bi-shield-check"></i></div>
+            <div>
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;">Garantia</div>
+              <div style="font-size:13px;font-weight:500;color:var(--text);">${fmtDate(a.garantia) || 'Sem garantia'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna Direita: Informações de Inventário -->
+      <div style="background:var(--bg2);padding:16px;border-radius:8px;border:1px solid var(--border);">
+        <h3 style="font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3);margin-bottom:16px;margin-top:0;">Inventário</h3>
+        
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-size:18px;color:var(--text2);width:24px;text-align:center;"><i class="bi bi-person"></i></div>
+            <div>
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;">Colaborador Vinculado</div>
+              <div style="font-size:13px;font-weight:500;color:var(--text);">${a.colab || 'Nenhum (Disponível)'}</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-size:18px;color:var(--text2);width:24px;text-align:center;"><i class="bi bi-geo-alt"></i></div>
+            <div>
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;">Localização</div>
+              <div style="font-size:13px;font-weight:500;color:var(--text);">${a.localizacao || '—'}</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-size:18px;color:var(--text2);width:24px;text-align:center;"><i class="bi bi-tag"></i></div>
+            <div>
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;">Tipo de Equipamento</div>
+              <div style="font-size:13px;font-weight:500;color:var(--text);">${a.tipo || '—'}</div>
+            </div>
+          </div>
+
+          ${a.obs ? `
+          <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);">
+            <div style="font-size:11px;color:var(--text3);text-transform:uppercase;margin-bottom:4px;"><i class="bi bi-sticky" style="margin-right:4px;"></i> Observações</div>
+            <div style="font-size:12px;color:var(--text2);">${a.obs}</div>
+          </div>` : ''}
+
+          ${a.anexo ? `
+          <div style="margin-top:12px;">
+            <a href="${a.anexo.startsWith('http') ? a.anexo : 'https://' + a.anexo}" target="_blank" class="btn btn-ghost btn-sm" style="border:1px solid var(--border);width:100%;justify-content:center;">
+              <i class="bi bi-file-earmark-text" style="margin-right:6px;"></i> Ver Nota Fiscal / Anexo
+            </a>
+          </div>` : ''}
+        </div>
+      </div>
+
     </div>
-    ${a.anexo ? `<div style="margin-bottom:12px;"><a href="${a.anexo.startsWith('http') ? a.anexo : 'https://' + a.anexo}" target="_blank" class="btn btn-ghost btn-sm" style="border:1px solid var(--border);"><i class="bi bi-link-45deg" style="margin-right:6px;"></i> Acessar Nota Fiscal / Anexo</a></div>` : ''}
-    ${a.obs ? `<div class="alert alert-info"><i class="bi bi-sticky" style="margin-right:6px;"></i> ${a.obs}</div>` : ''}`;
+  `;
   const btnEdit = document.getElementById('btnEditAtivo');
   if (btnEdit) { btnEdit.style.display = ''; btnEdit.onclick = () => { closeModal('modalDetalheAtivo'); openNovoAtivo(id); }; }
   const btnDelete = document.getElementById('btnDeleteAtivo');
@@ -413,12 +525,15 @@ function _updateAtivoFilterCounts(fullList) {
     { label: 'Descartado',  value: 'descartado' },
     { label: 'Saindo para envio',  value: 'saindo para envio' },
     { label: 'Entregue',  value: 'entregue' },
-    { label: 'Não postado ainda',  value: 'nao postado ainda' }
+    { label: 'Não postado ainda',  value: 'nao postado ainda' },
+    { label: 'Offline (RMM)',  value: 'offline' }
   ];
 
-  const statusCount = v => v === 'todos'
-    ? listParaStatus.length
-    : listParaStatus.filter(a => norm(a.status) === norm(v)).length;
+  const statusCount = v => {
+    if (v === 'todos') return listParaStatus.length;
+    if (v === 'offline') return listParaStatus.filter(a => (a.rmm_status === 'offline' || a.rmm_status === 'overdue') && norm(a.status) === 'em uso').length;
+    return listParaStatus.filter(a => norm(a.status) === norm(v)).length;
+  };
 
   const statusContainer = document.getElementById('ativoStatusSelect');
   if (statusContainer) {
