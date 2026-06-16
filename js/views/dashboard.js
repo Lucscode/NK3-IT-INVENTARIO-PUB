@@ -358,7 +358,9 @@ function renderCharts(ativos) {
       else if (osLower.includes('windows 10') || osLower.includes('win 10')) os = 'Windows 10';
       else if (osLower.includes('windows') || osLower.includes('win')) os = 'Windows (Outras Versões)';
       else if (osLower.includes('mac')) os = 'macOS';
-      else if (osLower.includes('linux') || osLower.includes('ubuntu')) os = 'Linux';
+      else if (osLower.includes('android')) os = 'Android';
+      else if (osLower.includes('ios') || osLower.includes('iphone')) os = 'iOS';
+      else if (osLower.includes('linux') || osLower.includes('ubuntu') || osLower.includes('debian')) os = 'Linux';
       else if (os !== 'Desconhecido') os = 'Outros';
       
       osCounts[os] = (osCounts[os] || 0) + 1;
@@ -372,7 +374,7 @@ function renderCharts(ativos) {
         labels: sortedOS.map(i => i[0]),
         datasets: [{
           data: sortedOS.map(i => i[1]),
-          backgroundColor: ['#0ea5e9', '#0284c7', '#f43f5e', '#eab308', '#94a3b8'],
+          backgroundColor: ['#0ea5e9', '#8b5cf6', '#f43f5e', '#10b981', '#f59e0b', '#6366f1', '#ec4899', '#64748b', '#14b8a6', '#f97316'],
           borderWidth: 0
         }]
       },
