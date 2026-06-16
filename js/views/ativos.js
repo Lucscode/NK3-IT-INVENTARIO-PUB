@@ -34,7 +34,7 @@ async function renderAtivos() {
 
   if (currentAtivoFilter !== 'todos') {
     if (currentAtivoFilter === 'offline') {
-      list = list.filter(a => (a.rmm_status === 'offline' || a.rmm_status === 'overdue') && _normS(a.status) === 'em uso');
+      list = list.filter(a => getOfflineStatus(a) !== null);
     } else {
       list = list.filter(a => _normS(a.status) === _normS(currentAtivoFilter));
     }
@@ -60,13 +60,15 @@ async function renderAtivos() {
 
   let html = '';
   if (currentView === 'grid') {
-    html = `<div class="asset-grid">${pagedList.map(a => `
+    html = `<div class="asset-grid">${pagedList.map(a => {
+        const off = getOfflineStatus(a);
+        return `
         <div class="asset-card" onclick="openDetalhe('${a.id}')">
           <div class="asset-card-img">
             ${_assetPhoto(fotosMap[a.id], a.emoji)}
             <div class="badge-overlay" style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
               ${statusBadge(a.status)}
-              ${(a.rmm_status === 'offline' || a.rmm_status === 'overdue') && _normS(a.status) === 'em uso' ? `<span class="badge" style="background:var(--danger);color:#fff;font-size:10px;padding:2px 6px;box-shadow:0 2px 4px rgba(0,0,0,0.2);"><i class="bi bi-wifi-off"></i> Offline</span>` : ''}
+              ${off ? `<span class="badge" style="background:${off.color};color:#fff;font-size:10px;padding:2px 6px;box-shadow:0 2px 4px rgba(0,0,0,0.2);"><i class="bi bi-wifi-off"></i> ${off.label}</span>` : ''}
             </div>
           </div>
           <div class="asset-card-body">
@@ -80,25 +82,29 @@ async function renderAtivos() {
               <div class="asset-card-info-row">${saudeBadge(a.saude)}</div>
             </div>
           </div>
-        </div>`).join('')
+        </div>`;
+      }).join('')
       || '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon"><i class="bi bi-laptop"></i></div><div class="empty-title">Nenhum ativo encontrado</div></div>'}
     </div>`;
   } else {
     html = `<div class="card"><div class="table-wrap"><table>
       <thead><tr><th>Ativo</th><th>Patrimônio</th><th>Tipo</th><th>Status</th><th>Saúde</th><th>Colaborador</th><th>Garantia</th><th>Ações</th></tr></thead>
-      <tbody>${pagedList.map(a => `<tr>
+      <tbody>${pagedList.map(a => {
+        const off = getOfflineStatus(a);
+        return `<tr>
         <td><span style="margin-right:8px;font-size:16px;color:var(--accent);"><i class="bi bi-${a.emoji || 'laptop'}"></i></span><b>${a.nome}</b></td>
         <td><span class="text-mono" style="font-size:11px;color:var(--text2);">${a.patrimonio}</span></td>
         <td><span style="font-size:12px;">${a.tipo || ''}</span></td>
         <td>
           ${statusBadge(a.status)}
-          ${(a.rmm_status === 'offline' || a.rmm_status === 'overdue') && _normS(a.status) === 'em uso' ? `<div style="margin-top:4px;"><span class="badge" style="background:var(--danger);color:#fff;font-size:10px;padding:2px 6px;"><i class="bi bi-wifi-off"></i> Offline</span></div>` : ''}
+          ${off ? `<div style="margin-top:4px;"><span class="badge" style="background:${off.color};color:#fff;font-size:10px;padding:2px 6px;"><i class="bi bi-wifi-off"></i> ${off.label}</span></div>` : ''}
         </td>
         <td>${saudeBadge(a.saude)}</td>
         <td><span style="font-size:12px;">${a.colab || '—'}</span></td>
         <td>${garantiaBadge(a.garantia)}</td>
         <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetalhe('${a.id}')">Ver</button></td>
-      </tr>`).join('')}</tbody>
+      </tr>`;
+      }).join('')}</tbody>
     </table></div></div>`;
   }
 
@@ -541,7 +547,7 @@ function _updateAtivoFilterCounts(fullList) {
 
   const statusCount = v => {
     if (v === 'todos') return listParaStatus.length;
-    if (v === 'offline') return listParaStatus.filter(a => (a.rmm_status === 'offline' || a.rmm_status === 'overdue') && norm(a.status) === 'em uso').length;
+    if (v === 'offline') return listParaStatus.filter(a => getOfflineStatus(a) !== null).length;
     return listParaStatus.filter(a => norm(a.status) === norm(v)).length;
   };
 

@@ -38,6 +38,21 @@ function garantiaBadge(d) {
   return exp ? '<span class="badge badge-red"><i class="bi bi-exclamation-triangle"></i> Expirada</span>' : '<span class="badge badge-green"><i class="bi bi-check-lg"></i> Válida</span>';
 }
 
+// ===================== OFFLINE HELPERS =====================
+function getMonthsOffline(lastSeenDateStr) {
+  if (!lastSeenDateStr) return 0;
+  return (new Date() - new Date(lastSeenDateStr)) / (1000 * 60 * 60 * 24 * 30.44);
+}
+
+function getOfflineStatus(a) {
+  if ((a.rmm_status === 'offline' || a.rmm_status === 'overdue') && (a.status || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'em uso') {
+    const months = getMonthsOffline(a.rmm_last_seen);
+    if (months >= 3) return { level: 3, label: 'Offline (>3m)', color: 'var(--danger)', title: 'Atenção Crítica' };
+    if (months >= 2) return { level: 2, label: 'Offline (>2m)', color: '#f97316', title: 'Alerta' };
+    if (months >= 1) return { level: 1, label: 'Possível Férias', color: '#eab308', title: 'Possível Férias' };
+  }
+  return null;
+}
 
 // ===================== MODAL HELPERS =====================
 function openModal(id) { document.getElementById(id).classList.add('open'); }

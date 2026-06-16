@@ -27,7 +27,7 @@ async function renderDashboard() {
   let ativos = await dbGetAtivos();
   _cacheAtivos = ativos;
   
-  const offCount = ativos.filter(a => (a.rmm_status === 'offline' || a.rmm_status === 'overdue') && (a.status || '').toLowerCase() === 'em uso').length;
+  const offCount = ativos.filter(a => getOfflineStatus(a) !== null).length;
   const offEl = document.getElementById('statOffline');
   if (offEl) offEl.textContent = offCount;
 
@@ -110,12 +110,15 @@ async function renderDashboard() {
   const em30 = new Date(); em30.setDate(em30.getDate() + 30);
   
   ativos.forEach(a => {
-    // 1. Offline (apenas se a máquina está marcada como 'em uso')
-    if ((a.rmm_status === 'offline' || a.rmm_status === 'overdue') && (a.status || '').toLowerCase() === 'em uso') {
+    // 1. Offline (com base no tempo)
+    const offStatus = getOfflineStatus(a);
+    if (offStatus) {
       alerts.push({
         id: a.id, nome: a.nome, patrimonio: a.patrimonio,
-        type: 'danger', icon: 'bi-wifi-off', title: 'Máquina Offline',
-        msg: `Sem comunicação com o RMM.`
+        type: offStatus.level >= 3 ? 'danger' : 'warn', 
+        icon: 'bi-wifi-off', 
+        title: offStatus.title,
+        msg: `Sem comunicação há mais de ${offStatus.level} mês(es).`
       });
     }
     // 2. Disco Cheio
