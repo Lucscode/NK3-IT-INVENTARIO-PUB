@@ -331,7 +331,11 @@ async function openDetalhe(id) {
             </div>
             <div style="font-size:13px;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
               <i class="bi bi-${a.emoji || 'laptop'}"></i> ${a.marca || ''} ${a.modelo || ''} 
-              ${a.so ? `<span style="margin:0 6px;color:var(--border);">|</span><i class="bi bi-windows"></i> ${a.so}` : ''}
+              ${a.so ? `<span style="margin:0 6px;color:var(--border);">|</span><i class="bi ${
+                a.so.toLowerCase().includes('mac') || a.so.toLowerCase().includes('apple') || a.so.toLowerCase().includes('ios') ? 'bi-apple' :
+                a.so.toLowerCase().includes('linux') || a.so.toLowerCase().includes('ubuntu') || a.so.toLowerCase().includes('debian') ? 'bi-ubuntu' :
+                a.so.toLowerCase().includes('android') ? 'bi-android2' : 'bi-windows'
+              }"></i> ${a.so}` : ''}
             </div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:300px;">
