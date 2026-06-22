@@ -329,61 +329,6 @@ function renderCharts(ativos) {
     });
   }
 
-  // 2. Tipos Chart (Bar)
-  if (chartTiposInstance) chartTiposInstance.destroy();
-  const ctxTipos = document.getElementById('chartTipos');
-  if (ctxTipos) {
-    const tipos = {};
-    ativos.forEach(a => {
-      let t = (a.tipo || '').trim();
-      if (!t) {
-        t = 'Sem Tipo';
-      } else {
-        t = t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
-      }
-      tipos[t] = (tipos[t] || 0) + 1;
-    });
-    
-    const sortedTipos = Object.entries(tipos).sort((a,b) => b[1] - a[1]);
-    
-    chartTiposInstance = new Chart(ctxTipos, {
-      type: 'bar',
-      data: {
-        labels: sortedTipos.map(i => i[0]),
-        datasets: [{
-          label: 'Quantidade',
-          data: sortedTipos.map(i => i[1]),
-          backgroundColor: '#3b82f6',
-          borderRadius: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, grid: { color: gridColor }, ticks: { stepSize: 1 } },
-          x: { grid: { display: false } }
-        },
-        onClick: (e, elements) => {
-          if (elements.length > 0) {
-            const index = elements[0].index;
-            const label = chartTiposInstance.data.labels[index];
-            
-            // Set filter in Ativos page
-            if (typeof filterAtivoTipo === 'function') {
-              filterAtivoTipo(label);
-            }
-            goTo('ativos');
-            
-            setTimeout(() => {
-              if (typeof filterAtivoTipo === 'function') filterAtivoTipo(label);
-            }, 100);
-          }
-        }
-      }
-    });
-  }
 
   // 3. OS Chart (Doughnut)
   if (chartOSInstance) chartOSInstance.destroy();
