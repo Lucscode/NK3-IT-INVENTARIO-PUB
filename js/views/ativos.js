@@ -25,9 +25,9 @@ async function renderAtivos() {
 
   const _normS = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
 
-  if (currentAtivoTipoFilter !== 'todos') {
+  if (currentAtivoTipoFilter !== 'todos' && currentAtivoTipoFilter !== 'todos_geral') {
     list = list.filter(a => _normS(a.tipo) === _normS(currentAtivoTipoFilter));
-  } else {
+  } else if (currentAtivoTipoFilter === 'todos') {
     const tiposDedicados = ['celular', 'monitor'];
     list = list.filter(a => !tiposDedicados.includes(_normS(a.tipo)));
   }
@@ -504,6 +504,7 @@ function _updateAtivoFilterCounts(fullList) {
   // ── Filtros de Tipo ──────────────────────────────────────
   const tipoFilters = [
     { label: 'Todos os Tipos',       value: 'todos' },
+    { label: 'Geral (Inclui todos)', value: 'todos_geral' },
     { label: 'Notebook',  value: 'Notebook' },
     { label: 'Desktop', value: 'Desktop' },
     { label: 'Monitor',  value: 'Monitor' },
@@ -513,9 +514,11 @@ function _updateAtivoFilterCounts(fullList) {
     { label: 'Servidor', value: 'Servidor' },
   ];
 
-  const tipoCount = v => v === 'todos'
-    ? semDedicados.length
-    : fullList.filter(a => norm(a.tipo) === norm(v)).length;
+  const tipoCount = v => {
+    if (v === 'todos_geral') return fullList.length;
+    if (v === 'todos') return semDedicados.length;
+    return fullList.filter(a => norm(a.tipo) === norm(v)).length;
+  };
 
   const tipoContainer = document.getElementById('ativoTipoSelect');
   if (tipoContainer) {
@@ -528,9 +531,11 @@ function _updateAtivoFilterCounts(fullList) {
 
   // ── Filtros de Status ────────────────────────────────────
   // Contagem baseada na lista após filtro de tipo
-  const listParaStatus = currentAtivoTipoFilter !== 'todos'
-    ? fullList.filter(a => norm(a.tipo) === norm(currentAtivoTipoFilter))
-    : semDedicados;
+  const listParaStatus = currentAtivoTipoFilter === 'todos_geral'
+    ? fullList
+    : (currentAtivoTipoFilter !== 'todos'
+      ? fullList.filter(a => norm(a.tipo) === norm(currentAtivoTipoFilter))
+      : semDedicados);
 
   const statusFilters = [
     { label: 'Qualquer Status',       value: 'todos' },

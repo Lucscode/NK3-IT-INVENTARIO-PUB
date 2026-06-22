@@ -181,6 +181,8 @@ Deno.serve(async (req: Request) => {
       debug_sample: debugSample,
       debug_all_clients: allClientNames,
       debug_total_before_filter: agents.length,
+      debug_first_agent_raw: null as Record<string, unknown> | null,
+      debug_agent_keys: null as string[] | null,
     };
 
     for (const agent of filteredAgents) {
@@ -443,9 +445,9 @@ Deno.serve(async (req: Request) => {
 
         // Guardar dados raw do primeiro agente processado para debug
         if (!result.debug_first_agent_raw) {
-          (result as Record<string, unknown>).debug_first_agent_raw = rawExtracted;
+          result.debug_first_agent_raw = rawExtracted;
           // Incluir todas as chaves do agente para ver campos disponíveis
-          (result as Record<string, unknown>).debug_agent_keys = Object.keys(raw);
+          result.debug_agent_keys = Object.keys(raw);
         }
       } catch (agentError) {
         result.errors.push({

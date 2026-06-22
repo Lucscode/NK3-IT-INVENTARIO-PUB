@@ -102,7 +102,41 @@ async function renderDashboard() {
     }).join('') || `<div style="padding:24px;text-align:center;color:var(--text2);font-size:13px;">Nenhuma atividade registrada</div>`;
   }
 
+  // Base para o painel de logística (ignora filtros dropdown de ativos recentes, mas respeita a barra de busca global)
+  let baseLogistica = _cacheAtivos;
+  if (search) {
+    baseLogistica = baseLogistica.filter(a =>
+      (a.nome || '').toLowerCase().includes(search) ||
+      (a.patrimonio || '').toLowerCase().includes(search) ||
+      (a.colab || '').toLowerCase().includes(search) ||
+      (a.marca || '').toLowerCase().includes(search) ||
+      (a.modelo || '').toLowerCase().includes(search) ||
+      (a.serie || '').toLowerCase().includes(search)
+    );
+  }
 
+  // Painel de Logística: Aguardando Envio
+  const logAguardando = baseLogistica.filter(a => a.status === 'saindo para envio');
+
+  const renderLogCard = (a) => `
+    <div style="background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:10px; display:flex; gap:12px; align-items:center; cursor:pointer; transition:transform 0.2s;" onclick="goTo('ativos');setTimeout(()=>openDetalhe('${a.id}'),300)" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+      <div style="width:36px;height:36px;background:var(--bg3);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text2);flex-shrink:0;">
+        <i class="bi bi-${a.emoji || 'laptop'}"></i>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);">${a.nome}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px;">${a.patrimonio} ${a.colab ? `• ${a.colab}` : ''}</div>
+      </div>
+      <i class="bi bi-chevron-right" style="color:var(--text3);font-size:12px;"></i>
+    </div>
+  `;
+
+  const aguardandoEl = document.getElementById('dashLogAguardando');
+  if (aguardandoEl) {
+    aguardandoEl.innerHTML = logAguardando.length 
+      ? logAguardando.map(renderLogCard).join('') 
+      : '<div style="font-size:12px;color:var(--text3);padding:10px;text-align:center;grid-column:1/-1;">Nenhum ativo aguardando envio</div>';
+  }
 
   // Atenção Crítica (Health Checks)
   const alerts = [];
@@ -268,6 +302,11 @@ function renderCharts(ativos) {
             const filterMap = { 'Disponível': 'disponivel', 'Em Uso': 'em uso', 'Manutenção': 'manutencao', 'Estoque': 'estoque' };
             const val = filterMap[label] || 'todos';
             
+            // Garante que a view mostre todos os tipos (incluindo dedicados)
+            if (typeof filterAtivoTipo === 'function') {
+              filterAtivoTipo('todos_geral');
+            }
+            
             // Set filter in Ativos page if it's available globally or via element
             if (typeof filterAtivos === 'function') {
               filterAtivos(val);
@@ -394,6 +433,9 @@ function renderCharts(ativos) {
             const searchEl = document.getElementById('globalSearch');
             if (searchEl) searchEl.value = label;
             
+            if (typeof filterAtivoTipo === 'function') {
+              filterAtivoTipo('todos_geral');
+            }
             goTo('ativos');
             
             setTimeout(() => {
