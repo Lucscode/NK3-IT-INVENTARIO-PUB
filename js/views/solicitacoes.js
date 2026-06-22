@@ -233,6 +233,8 @@ async function enviarSolicitacaoAdmin() {
     finalObs = `[TROCA DE MÁQUINA]\n\n` + finalObs;
   }
 
+  const isKit = document.getElementById('adminSolKit').checked;
+
   await dbCreateSolicitacao({
     colaborador: nome,
     cpf,
@@ -243,10 +245,32 @@ async function enviarSolicitacaoAdmin() {
     rua,
     numero,
     complemento: complementoStr,
-    kit: document.getElementById('adminSolKit').checked,
+    kit: isKit,
     obs: finalObs,
     status: 'pendente'
   });
+  
+  // Automação de Baixa de Kit
+  if (isKit) {
+    try {
+      // 1. Debita 1 de cada item do estoque de kits
+      const estoque = await dbGetKitEstoque();
+      for (const item of Object.keys(estoque)) {
+        const atual = parseInt(estoque[item], 10) || 0;
+        await dbUpdateKitItem(item, Math.max(0, atual - 1));
+      }
+      // 2. Adiciona o registro no Histórico de Kits
+      await dbAddKitHistorico({
+        colab: nome,
+        quantidade: 1,
+        obs: 'Gerado automaticamente via Nova Solicitação',
+        data: inicio || new Date().toISOString().split('T')[0],
+        status: 'pendente'
+      });
+    } catch (e) {
+      console.error('Erro na automação do kit:', e);
+    }
+  }
   
   // ─── DISPARO DE EMAIL (EmailJS) ──────────────────────────
   try {
