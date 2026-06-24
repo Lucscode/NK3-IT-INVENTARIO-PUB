@@ -10,7 +10,7 @@ window.demoDB = {
       serie: '1A2B3C4',
       status: 'em uso',
       saude: 'excelente',
-      colab: 'Lucas Pereira',
+      colab: 'Carlos Silva',
       localizacao: 'São Paulo - Matriz',
       proc: 'Intel Core i5 11ª',
       ram: '16GB',
@@ -101,12 +101,12 @@ window.demoDB = {
     }
   ],
   colaboradores: [
-    { id: 'colab-1', nome: 'Lucas Pereira', email: 'lucas@nk3it.com', cargo: 'CEO', departamento: 'Diretoria' },
+    { id: 'colab-1', nome: 'Carlos Silva', email: 'carlos@nk3it.com', cargo: 'CEO', departamento: 'Diretoria' },
     { id: 'colab-2', nome: 'Maria Eduarda', email: 'maria@nk3it.com', cargo: 'Desenvolvedora', departamento: 'Tecnologia' },
     { id: 'colab-3', nome: 'João Silva', email: 'joao@nk3it.com', cargo: 'Analista de Suporte', departamento: 'TI' }
   ],
   historico: [
-    { id: 'hist-1', ativo_nome: 'Dell Latitude 3420 (NK3-0001)', colab: 'Lucas Pereira', obs: 'Atribuído novo notebook', atribuido: new Date().toISOString() },
+    { id: 'hist-1', ativo_nome: 'Dell Latitude 3420 (NK3-0001)', colab: 'Carlos Silva', obs: 'Atribuído novo notebook', atribuido: new Date().toISOString() },
     { id: 'hist-2', ativo_nome: 'iPhone 13 128GB (NK3-0003)', colab: 'Maria Eduarda', obs: 'Enviado para conserto - Tela quebrada', devolvido: null, created_at: new Date(Date.now() - 86400000 * 2).toISOString() }
   ],
   kit_estoque: {
@@ -169,5 +169,25 @@ window.initDemoMock = function() {
       emUso: ativos.filter(a => a.status === 'em uso').length,
       manutencao: ativos.filter(a => a.status === 'manutencao').length,
     };
+  };
+
+  window.syncFromRMM = async () => {
+    const btn = document.getElementById('btnSyncRMM');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Sincronizando...'; }
+    
+    // Simulate delay
+    await new Promise(r => setTimeout(r, 1500));
+    
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Sincronizar com RMM'; }
+    
+    if (typeof notify !== 'undefined') {
+      notify('Modo Demonstração: Sincronização fictícia concluída com sucesso!', 'success');
+    }
+    
+    // Update dashboard UI if function exists
+    if (typeof _updateSyncTimestamp === 'function') {
+      localStorage.setItem('lastRMMSync', new Date().toISOString());
+      _updateSyncTimestamp();
+    }
   };
 };

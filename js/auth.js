@@ -22,12 +22,34 @@ function _applyRoleSidebar(role) {
   });
   const clientSection = document.getElementById('clientSection');
   if (clientSection) clientSection.style.display = isAdmin ? 'none' : 'block';
+
+  // Esconder monitoramento no modo demo
+  const navMon = document.getElementById('navMonitoramento');
+  const btnSync = document.getElementById('btnSyncRMM');
+  if (typeof currentUser !== 'undefined' && currentUser?.email === 'demo@nk3it.com') {
+    if (navMon) navMon.style.display = 'none';
+    if (btnSync) btnSync.style.display = 'none';
+  } else {
+    if (navMon) navMon.style.display = '';
+    if (btnSync) btnSync.style.display = 'inline-flex'; // ou '' dependendo do layout original
+  }
 }
 
 function _setUserUI(user) {
+  // Sidebar
   document.getElementById('userNameSidebar').textContent = user.nome || user.name || 'Usuário';
   document.getElementById('userRoleSidebar').textContent = user.role === 'admin' ? 'Administrador' : 'Cliente';
   document.getElementById('userAvatarSidebar').textContent = user.initials || user.nome?.slice(0, 2).toUpperCase() || 'US';
+
+  // Topbar
+  const topName = document.getElementById('topbarUserName');
+  if (topName) topName.textContent = user.nome || user.name || 'Usuário';
+  
+  const topRole = document.getElementById('topbarUserRole');
+  if (topRole) topRole.textContent = user.role === 'admin' ? 'Administrador' : 'Cliente';
+  
+  const topAvatar = document.getElementById('topbarUserInitials');
+  if (topAvatar) topAvatar.textContent = user.initials || user.nome?.slice(0, 2).toUpperCase() || 'US';
 }
 
 async function doLogin() {

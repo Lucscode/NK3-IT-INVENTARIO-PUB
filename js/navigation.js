@@ -24,7 +24,8 @@ function goTo(page) {
     celulares: 'Celulares',
     'area-cliente': 'Área do Cliente',
     movimentacoes: 'Entradas e Saídas',
-    devolucoes: 'Devoluções'
+    devolucoes: 'Devoluções',
+    monitoramento: 'Monitoramento (RMM)'
   };
   const subs = {
     dashboard: 'Visão geral do Inventário de TI',
@@ -37,7 +38,8 @@ function goTo(page) {
     celulares: 'Controle de aparelhos e linhas corporativas',
     'area-cliente': 'Portal do colaborador',
     movimentacoes: 'Registro de entrega e devolução de equipamentos',
-    devolucoes: 'Acompanhamento de máquinas a serem devolvidas'
+    devolucoes: 'Acompanhamento de máquinas a serem devolvidas',
+    monitoramento: 'Acesso remoto e telemetria do Tactical RMM'
   };
 
   document.getElementById('pageTitle').textContent = titles[page] || page;
@@ -56,6 +58,7 @@ function goTo(page) {
   }
 
   if(page === 'dashboard') renderDashboard();
+  if(page === 'monitoramento') carregarMonitoramento();
   if(page === 'ativos') renderAtivos();
   if(page === 'monitores') renderMonitores();
   if(page === 'celulares') renderCelulares();

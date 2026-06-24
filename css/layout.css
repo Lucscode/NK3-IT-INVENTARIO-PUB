@@ -152,7 +152,7 @@ body.dark-mode .topbar { background: rgba(30, 41, 59, 0.8); }
   border-radius: 8px; color: var(--text); font-size: 13px; font-family: var(--sans);
   outline: none; transition: border-color .15s;
 }
-.topbar-search input:focus { border-color: var(--accent); background: #fff; }
+.topbar-search input:focus { border-color: var(--accent); background: var(--bg2); }
 .topbar-search input::placeholder { color: var(--text3); }
 .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 13px; }
 
