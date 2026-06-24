@@ -14,9 +14,15 @@ async function syncFromRMM() {
 
   _rmmSyncInProgress = true;
   const btn = document.getElementById('btnSyncRMM');
+  const btn2 = document.getElementById('btnSyncRMM_mon');
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Sincronizando...';
+  }
+  if (btn2) {
+    btn2.disabled = true;
+    btn2.innerHTML = '<i data-lucide="refresh-cw" class="spin-icon"></i> Sincronizando...';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
   }
 
   try {
@@ -56,6 +62,14 @@ async function syncFromRMM() {
       btn.disabled = false;
       btn.innerHTML = '<i class="bi bi-cloud-download"></i> Sincronizar RMM';
     }
+    if (btn2) {
+      btn2.disabled = false;
+      btn2.innerHTML = '<i data-lucide="refresh-cw"></i> Sincronizar Agora';
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+    
+    // Recarregar a tabela se estivermos na aba de monitoramento
+    if (typeof carregarMonitoramento === 'function') carregarMonitoramento();
   }
 }
 

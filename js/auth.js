@@ -26,12 +26,15 @@ function _applyRoleSidebar(role) {
   // Esconder monitoramento no modo demo
   const navMon = document.getElementById('navMonitoramento');
   const btnSync = document.getElementById('btnSyncRMM');
+  const btnSyncMon = document.getElementById('btnSyncRMM_mon');
   if (typeof currentUser !== 'undefined' && currentUser?.email === 'demo@nk3it.com') {
     if (navMon) navMon.style.display = 'none';
     if (btnSync) btnSync.style.display = 'none';
+    if (btnSyncMon) btnSyncMon.style.display = 'none';
   } else {
     if (navMon) navMon.style.display = '';
-    if (btnSync) btnSync.style.display = 'inline-flex'; // ou '' dependendo do layout original
+    if (btnSync) btnSync.style.display = 'inline-flex';
+    if (btnSyncMon) btnSyncMon.style.display = 'inline-flex';
   }
 }
 

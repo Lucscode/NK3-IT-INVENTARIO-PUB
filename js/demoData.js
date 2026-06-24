@@ -173,12 +173,16 @@ window.initDemoMock = function() {
 
   window.syncFromRMM = async () => {
     const btn = document.getElementById('btnSyncRMM');
+    const btn2 = document.getElementById('btnSyncRMM_mon');
+    
     if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Sincronizando...'; }
+    if (btn2) { btn2.disabled = true; btn2.innerHTML = '<i data-lucide="refresh-cw" class="spin-icon"></i> Sincronizando...'; if (typeof lucide !== 'undefined') lucide.createIcons(); }
     
     // Simulate delay
     await new Promise(r => setTimeout(r, 1500));
     
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Sincronizar com RMM'; }
+    if (btn2) { btn2.disabled = false; btn2.innerHTML = '<i data-lucide="refresh-cw"></i> Sincronizar Agora'; if (typeof lucide !== 'undefined') lucide.createIcons(); }
     
     if (typeof notify !== 'undefined') {
       notify('Modo Demonstração: Sincronização fictícia concluída com sucesso!', 'success');
