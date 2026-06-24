@@ -37,38 +37,113 @@
 
   <!-- LOGIN -->
   <div class="login-wrap" id="loginWrap">
-    <div class="login-card">
-      <div class="login-logo">
-        <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;">
-          <div class="logo-mark" style="width:40px;height:40px;font-size:16px;">
-            <img src="assets/logo-nk3-it-3.png" alt="Logo" style="width:100%;height:100%;object-fit:contain;">
+    <!-- Esquerda: Branding & Info -->
+    <div class="login-left fade-in-up" style="animation-delay: 0.1s;">
+      <div class="login-brand">
+        <div class="logo-mark login-logo-large">
+          <img src="assets/logo-nk3-it-3.png" alt="Logo NK3IT">
+        </div>
+        <h1 class="brand-title">
+          Sistema de Inventário de TI 
+          <span class="version-badge">Enterprise Edition</span>
+        </h1>
+        <div class="brand-subtitle" style="font-size: 14px; color: var(--accent); font-weight: 700; margin-top: 8px; margin-bottom: 16px; letter-spacing: 0.05em; text-transform: uppercase;">Powered by NK3IT</div>
+        <p style="font-size: 15px; color: rgba(255,255,255,0.9); font-weight: 500; max-width: 480px; line-height: 1.5; margin-bottom: 8px;">Uma única plataforma para inventário, monitoramento e gestão de ativos corporativos.</p>
+        <p style="font-size: 13px; color: rgba(255,255,255,0.5); max-width: 480px; line-height: 1.5; margin-bottom: 32px;">Plataforma desenvolvida para centralizar o gerenciamento e rastreabilidade de dispositivos em uma única solução.</p>
+      </div>
+      <ul class="login-features">
+        <li><i class="bi bi-check2"></i> Gestão centralizada de ativos de TI</li>
+        <li><i class="bi bi-check2"></i> Inventário de hardware, software e licenças</li>
+        <li><i class="bi bi-check2"></i> Monitoramento RMM em tempo real</li>
+        <li><i class="bi bi-check2"></i> Dashboard operacional em tempo real</li>
+        <li><i class="bi bi-check2"></i> Histórico e rastreabilidade dos dispositivos</li>
+        <li><i class="bi bi-check2"></i> Gestão de ciclo de vida dos ativos</li>
+      </ul>
+      <div class="login-illustration" style="flex: 1; min-height: 240px; display: flex; align-items: flex-end; position: relative; z-index: 2;">
+        <div class="dashboard-preview-bg">
+          <div class="glass-dash-header">
+            <div class="glass-dash-search"></div>
+            <div class="glass-dash-user"></div>
           </div>
-          <div>
-            <div style="font-family:var(--mono);font-size:18px;font-weight:700;">Inventário</div>
-            <div style="font-size:11px;color:var(--text3);">Sistema de Inventário de TI</div>
+          <div class="glass-dash-cards">
+            <div class="glass-card">
+              <div class="glass-card-title">Ativos</div>
+              <div class="glass-card-value">1.245</div>
+            </div>
+            <div class="glass-card">
+              <div class="glass-card-title">Online</div>
+              <div class="glass-card-value">1.112</div>
+            </div>
+            <div class="glass-card">
+              <div class="glass-card-title">Alertas</div>
+              <div class="glass-card-value" style="color: #fca5a5;">12</div>
+            </div>
+          </div>
+          <div class="glass-dash-table">
+            <div class="glass-table-row glass-table-head">
+              <div>HOSTNAME</div><div>STATUS</div><div>LOCAL</div>
+            </div>
+            <div class="glass-table-row">
+              <div>DESKTOP-01</div><div><span class="glass-badge green">Online</span></div><div>Matriz</div>
+            </div>
+            <div class="glass-table-row">
+              <div>NOTEBOOK-02</div><div><span class="glass-badge red">Offline</span></div><div>Filial</div>
+            </div>
+            <div class="glass-table-row">
+              <div>SRV-BD-01</div><div><span class="glass-badge green">Online</span></div><div>Datacenter</div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="form-group" style="margin-bottom:14px;">
-        <label>Email</label>
-        <input type="email" id="loginEmail" value="" placeholder="Seu Email">
+      
+      <div class="login-tech-stack">
+        <i class="bi bi-braces"></i> React &bull; TypeScript &bull; Node.js &bull; PostgreSQL
       </div>
-      <div class="form-group" style="margin-bottom:20px;">
-        <label>Senha</label>
-        <div style="position:relative;">
-          <input type="password" id="loginPass" placeholder="Sua Senha" style="padding-right:40px; box-sizing:border-box;">
-          <button type="button" onclick="togglePassword()" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--text3); padding:0; display:flex; align-items:center; justify-content:center;" title="Mostrar/Ocultar Senha">
-            <i class="bi bi-eye" id="togglePassIcon" style="font-size:16px;"></i>
-          </button>
+    </div>
+
+    <!-- Direita: Formulário -->
+    <div class="login-right">
+      <div class="login-card fade-in-up" style="animation-delay: 0.2s;">
+        <div class="login-header">
+          <h2>Bem-vindo de volta</h2>
+          <p>Insira suas credenciais para acessar o painel</p>
+        </div>
+        
+        <div class="form-group">
+          <label>E-mail corporativo</label>
+          <div class="input-with-icon">
+            <i class="bi bi-envelope"></i>
+            <input type="email" id="loginEmail" value="" placeholder="nome@nk3it.com.br">
+          </div>
+        </div>
+        
+        <div class="form-group" style="margin-bottom:24px;">
+          <label>Senha</label>
+          <div class="input-with-icon">
+            <i class="bi bi-lock"></i>
+            <input type="password" id="loginPass" placeholder="Sua Senha">
+            <button type="button" class="btn-toggle-pass" onclick="togglePassword()" title="Mostrar/Ocultar Senha">
+              <i class="bi bi-eye" id="togglePassIcon"></i>
+            </button>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary btn-login" onclick="doLogin()">Entrar</button>
+        
+        <div class="login-divider"><span>ou</span></div>
+        
+        <button class="btn btn-outline btn-demo" onclick="doDemoLogin()">
+          🚀 Testar ambiente de demonstração
+        </button>
+
+        <div class="login-footer">
+          Desenvolvido por <br/>
+          <a href="https://www.linkedin.com/in/lucasadmpereira/" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+            Lucas Pereira <i class="bi bi-linkedin" style="font-size: 12px;"></i>
+          </a>
+          <div style="margin-top: 6px; font-size: 10px; opacity: 0.7;">&copy; 2026 NK3IT &bull; Versão 1.0.0</div>
         </div>
       </div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;" onclick="doLogin()">Entrar
-        →</button>
-      <button class="btn btn-ghost" style="width:100%;justify-content:center;padding:11px;margin-top:10px;border:1px solid var(--border);color:var(--text);" onclick="doDemoLogin()">
-        <i class="bi bi-play-circle" style="margin-right:6px;"></i> Acessar Modo Demonstração
-      </button>
-      <p style="text-align:center;margin-top:14px;font-size:11px;color:var(--text3);">Insira suas credenciais para
-        acessar</p>
     </div>
   </div>
 
