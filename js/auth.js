@@ -125,6 +125,9 @@ async function doDemoLogin() {
     refreshColabDatalist();
     
     notify('Acessando em modo de demonstração. Bem-vindo!', 'success');
+    
+    // Mostra o pop up de boas vindas do modo demo
+    openModal('modalDemoWelcome');
 
   } catch (ex) {
     notify('Erro ao acessar demonstração: ' + ex.message, 'error');

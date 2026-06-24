@@ -1411,6 +1411,21 @@
     </div>
   </div>
 
+  <!-- MODAL: BOAS VINDAS DEMO -->
+  <div class="modal-overlay" id="modalDemoWelcome" style="z-index:9999;">
+    <div class="modal-content" style="max-width: 500px; text-align: center; padding: 40px 30px;">
+      <div style="width: 80px; height: 80px; background: rgba(99,102,241,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto; color: var(--accent);">
+        <i data-lucide="sparkles" style="width: 40px; height: 40px;"></i>
+      </div>
+      <h2 style="font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 12px; font-family: var(--font-primary);">Bem-vindo à Demonstração!</h2>
+      <p style="font-size: 15px; color: var(--text2); line-height: 1.6; margin-bottom: 32px;">
+        Este é um ambiente fictício projetado para você explorar as funcionalidades básicas do sistema.<br><br>
+        O produto final possui <strong>dezenas de outras integrações</strong>, configurações avançadas e fluxos de segurança que estão desabilitados aqui para proteção.
+      </p>
+      <button class="btn btn-primary" onclick="closeModal('modalDemoWelcome')" style="width: 100%; justify-content: center; font-size: 16px; padding: 12px;">Compreendo, vamos lá!</button>
+    </div>
+  </div>
+
   <!-- MODAL: LIGHTBOX PARA FOTOS -->
   <div class="modal-overlay" id="modalLightbox" style="z-index:9999;" onclick="closeModal('modalLightbox')">
     <div style="position:relative; width:90vw; height:90vh; display:flex; justify-content:center; align-items:center;">
