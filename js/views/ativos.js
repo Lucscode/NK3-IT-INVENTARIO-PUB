@@ -3,12 +3,13 @@ let currentAtivoTipoFilter = 'todos';
 let currentPageAtivos = 1;
 const ATIVOS_PER_PAGE = 20;
 function _assetPhoto(fotos, icon) {
+  const iconName = (icon === 'display') ? 'monitor' : (icon === 'phone' ? 'smartphone' : (icon || 'laptop'));
   if (fotos && fotos.length > 0) {
     return `<img src="${fotos[0].url}" alt="foto" style="width:100%;height:100%;object-fit:cover;"
       onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-      <div class="asset-emoji-fallback" style="display:none;"><i class="bi bi-${icon || 'laptop'}"></i></div>`;
+      <div class="asset-emoji-fallback" style="display:none;"><i data-lucide="${iconName}"></i></div>`;
   }
-  return `<div class="asset-emoji-fallback"><i class="bi bi-${icon || 'laptop'}"></i></div>`;
+  return `<div class="asset-emoji-fallback"><i data-lucide="${iconName}"></i></div>`;
 }
 
 async function renderAtivos() {
@@ -80,7 +81,7 @@ async function renderAtivos() {
             ${_assetPhoto(fotosMap[a.id], a.emoji)}
             <div class="badge-overlay" style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
               ${statusBadge(a.status)}
-              ${off ? `<span class="badge" style="background:${off.color};color:#fff;font-size:10px;padding:2px 6px;box-shadow:0 2px 4px rgba(0,0,0,0.2);"><i class="bi bi-wifi-off"></i> ${off.label}</span>` : ''}
+              ${off ? `<span class="badge" style="background:${off.color};color:#fff;font-size:10px;padding:2px 6px;box-shadow:0 2px 4px rgba(0,0,0,0.2);"><i data-lucide="wifi-off" style="width:10px;height:10px;"></i> ${off.label}</span>` : ''}
             </div>
           </div>
           <div class="asset-card-body">
@@ -90,13 +91,13 @@ async function renderAtivos() {
             </div>
             <div class="asset-card-name">${a.nome}</div>
             <div class="asset-card-info">
-              ${a.colab ? `<div class="asset-card-info-row"><i class="bi bi-person"></i> <span>${a.colab}</span></div>` : ''}
+              ${a.colab ? `<div class="asset-card-info-row"><i data-lucide="user" style="width:14px;height:14px;"></i> <span>${a.colab}</span></div>` : ''}
               <div class="asset-card-info-row">${saudeBadge(a.saude)}</div>
             </div>
           </div>
         </div>`;
       }).join('')
-      || '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon"><i class="bi bi-laptop"></i></div><div class="empty-title">Nenhum ativo encontrado</div></div>'}
+      || '<div class="empty" style="grid-column:1/-1;"><div class="empty-icon"><i data-lucide="laptop"></i></div><div class="empty-title">Nenhum ativo encontrado</div></div>'}
     </div>`;
   } else {
     html = `<div class="card"><div class="table-wrap"><table>

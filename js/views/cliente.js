@@ -215,30 +215,33 @@ function filtrarMaquinasCliente(resetPage = true) {
   const startIdx = (currentPageCliente - 1) * CLIENTE_PER_PAGE;
   const pagedList = filtrados.slice(startIdx, startIdx + CLIENTE_PER_PAGE);
 
-  let html = pagedList.map(a => `
+  let html = pagedList.map(a => {
+    const iconName = (a.emoji === 'display') ? 'monitor' : (a.emoji === 'phone' ? 'smartphone' : (a.emoji || 'laptop'));
+    return `
     <div class="asset-card" onclick="openDetalheCliente('${a.id}')" style="cursor:pointer;">
       <div class="asset-card-img">
         ${a.ativo_fotos && a.ativo_fotos.length > 0 
-           ? `<img src="${a.ativo_fotos[0].url}" alt="foto" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="asset-emoji-fallback" style="display:none;"><i class="bi bi-${a.emoji||'laptop'}"></i></div>`
-           : `<div class="asset-emoji-fallback"><i class="bi bi-${a.emoji||'laptop'}"></i></div>`}
+           ? `<img src="${a.ativo_fotos[0].url}" alt="foto" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="asset-emoji-fallback" style="display:none;"><i data-lucide="${iconName}"></i></div>`
+           : `<div class="asset-emoji-fallback"><i data-lucide="${iconName}"></i></div>`}
         <div class="badge-overlay">${statusBadge(a.status)}</div>
       </div>
       <div class="asset-card-body">
         <div class="asset-card-meta"><span class="asset-card-patrimonio">${a.patrimonio}</span><span class="asset-card-tipo">${a.tipo||''}</span></div>
         <div class="asset-card-name">${a.nome}</div>
         <div class="asset-card-info">
-          <div class="asset-card-info-row"><i class="bi bi-person"></i> <span>${a.colab||'Disponível'}</span></div>
+          <div class="asset-card-info-row"><i data-lucide="user" style="width:14px;height:14px;"></i> <span>${a.colab||'Disponível'}</span></div>
         </div>
         ${a.status === 'disponivel' ? `
         <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
            <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center;" onclick="event.stopPropagation();abrirIndicarMaquina('${a.nome}', '${a.patrimonio}')">
-             <i class="bi bi-person-plus"></i> Indicar Colaborador
+             <i data-lucide="user-plus" style="width:16px;height:16px;"></i> Indicar Colaborador
            </button>
         </div>` : ''}
       </div>
-    </div>`).join('') || `
+    </div>`;
+  }).join('') || `
     <div class="empty" style="grid-column:1/-1;">
-      <div class="empty-icon"><i class="bi bi-search"></i></div>
+      <div class="empty-icon"><i data-lucide="search"></i></div>
       <div class="empty-title">Nenhum equipamento encontrado</div>
       <div class="empty-sub">Tente ajustar os filtros</div>
     </div>`;
@@ -254,6 +257,7 @@ function filtrarMaquinasCliente(resetPage = true) {
   }
 
   grid.innerHTML = html;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function changePageCliente(p) {

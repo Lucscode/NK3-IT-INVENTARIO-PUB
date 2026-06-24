@@ -1,14 +1,15 @@
 /* ===== VARIABLES & RESET ===== */
 :root {
-  /* Backgrounds */
-  --bg:       #f0f2f5;
+  /* Backgrounds (Light Mode) */
+  --bg:       #f8fafc;
   --bg2:      #ffffff;
-  --bg3:      #f8f9fb;
+  --bg3:      #f1f5f9;
   --sidebar-bg: #1a2035;
   --sidebar-active: #2563eb;
+  --sidebar-hover: rgba(255,255,255,0.05);
 
   /* Borders */
-  --border:   #e5e7eb;
+  --border:   #e2e8f0;
 
   /* Accents */
   --accent:   #2563eb;
@@ -16,11 +17,12 @@
   --accent3:  #f59e0b;
   --warn:     #f59e0b;
   --danger:   #ef4444;
+  --purple:   #8b5cf6;
 
   /* Text */
-  --text:     #111827;
-  --text2:    #6b7280;
-  --text3:    #9ca3af;
+  --text:     #0f172a;
+  --text2:    #475569;
+  --text3:    #94a3b8;
 
   /* Sidebar text */
   --sidebar-text:   #cbd5e1;
@@ -32,9 +34,29 @@
 
   /* Radii & Shadows */
   --radius:    8px;
-  --radius-lg: 12px;
+  --radius-lg: 20px;
   --shadow:    0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
   --shadow-md: 0 4px 24px rgba(0,0,0,0.12);
+  --shadow-soft: 0 8px 30px rgba(0,0,0,0.05);
+}
+
+body.dark-mode {
+  --bg:       #0f172a;
+  --bg2:      #1e293b;
+  --bg3:      #334155;
+  --sidebar-bg: #0b0f19;
+  --sidebar-active: #2563eb;
+  --sidebar-hover: rgba(255,255,255,0.05);
+
+  --border:   #334155;
+
+  --text:     #f8fafc;
+  --text2:    #cbd5e1;
+  --text3:    #64748b;
+
+  --shadow:    0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 24px rgba(0,0,0,0.5);
+  --shadow-soft: 0 8px 30px rgba(0,0,0,0.3);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

@@ -1,4 +1,14 @@
 // ===================== UTILITIES =====================
+
+function toggleTheme() {
+  document.body.classList.toggle('dark-mode');
+  const isDark = document.body.classList.contains('dark-mode');
+  localStorage.setItem('nk3it_dark_mode', isDark);
+  if (typeof renderCharts === 'function' && typeof _cacheAtivos !== 'undefined') {
+    renderCharts(_cacheAtivos); // Re-render charts with new theme colors
+  }
+}
+
 function notify(msg, type = 'success') {
   const div = document.createElement('div');
   div.className = `notif ${type}`;

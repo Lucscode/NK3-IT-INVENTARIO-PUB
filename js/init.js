@@ -8,6 +8,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Tenta restaurar sessão existente (evita re-login ao recarregar)
   const restored = await tryRestoreSession();
 
+  // Inicializa tema escuro
+  const isDark = localStorage.getItem('nk3it_dark_mode') === 'true';
+  if (isDark) document.body.classList.add('dark-mode');
+
+  // Inicializa ícones Lucide
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+
   if (restored) {
     try {
       await updatePendBadge();
