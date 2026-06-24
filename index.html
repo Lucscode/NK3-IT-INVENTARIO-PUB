@@ -64,6 +64,9 @@
       </div>
       <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;" onclick="doLogin()">Entrar
         →</button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;padding:11px;margin-top:10px;border:1px solid var(--border);color:var(--text);" onclick="doDemoLogin()">
+        <i class="bi bi-play-circle" style="margin-right:6px;"></i> Acessar Modo Demonstração
+      </button>
       <p style="text-align:center;margin-top:14px;font-size:11px;color:var(--text3);">Insira suas credenciais para
         acessar</p>
     </div>
@@ -210,6 +213,20 @@
                 <div class="stat-num" id="statOffline" style="color:var(--danger);">0</div>
               </div>
               <div class="stat-icon-box" style="background:rgba(239,68,68,0.1);color:#ef4444;"><i class="bi bi-wifi-off"></i></div>
+            </div>
+            <div class="stat-card" style="cursor:pointer;" onclick="if(typeof filterAtivos==='function')filterAtivos('ram_upgrade'); goTo('ativos'); setTimeout(()=>filterAtivos('ram_upgrade'),100);">
+              <div class="stat-card-info">
+                <div class="stat-label">Upgrade de RAM</div>
+                <div class="stat-num" id="statRAM" style="color:#f59e0b;">0</div>
+              </div>
+              <div class="stat-icon-box" style="background:rgba(245,158,11,0.1);color:#f59e0b;"><i class="bi bi-memory"></i></div>
+            </div>
+            <div class="stat-card" style="cursor:pointer;" onclick="if(typeof filterAtivos==='function')filterAtivos('hd_cheio'); goTo('ativos'); setTimeout(()=>filterAtivos('hd_cheio'),100);">
+              <div class="stat-card-info">
+                <div class="stat-label">HD Quase Cheio</div>
+                <div class="stat-num" id="statHD" style="color:var(--danger);">0</div>
+              </div>
+              <div class="stat-icon-box" style="background:rgba(239,68,68,0.1);color:#ef4444;"><i class="bi bi-device-hdd"></i></div>
             </div>
           </div>
 

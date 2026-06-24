@@ -76,6 +76,36 @@ async function doLogin() {
   }
 }
 
+async function doDemoLogin() {
+  const btn = document.querySelector('#loginWrap .btn-ghost');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin" style="display:inline-block; margin-right:6px;">↻</span> Acessando...'; }
+
+  try {
+    loginRole = 'admin';
+    currentUser = { role: 'admin', nome: 'Modo Demonstração', initials: 'MD', email: 'demo@nk3it.com' };
+
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'flex';
+
+    _setUserUI(currentUser);
+    _applyRoleSidebar(currentUser.role);
+
+    goTo('dashboard');
+
+    updateStats();
+    updatePendBadge();
+    _cacheColabs = await dbGetColabs();
+    refreshColabDatalist();
+    
+    notify('Acessando em modo de demonstração. Bem-vindo!', 'success');
+
+  } catch (ex) {
+    notify('Erro ao acessar demonstração: ' + ex.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-play-circle" style="margin-right:6px;"></i> Acessar Modo Demonstração'; }
+  }
+}
+
 async function doLogout() {
   await dbSignOut();
   _applyRoleSidebar('admin');

@@ -35,6 +35,18 @@ async function renderAtivos() {
   if (currentAtivoFilter !== 'todos') {
     if (currentAtivoFilter === 'offline') {
       list = list.filter(a => getOfflineStatus(a) !== null);
+    } else if (currentAtivoFilter === 'ram_upgrade') {
+      list = list.filter(a => {
+        const status = (a.status || '').toLowerCase();
+        if (status !== 'estoque' && status !== 'em uso') return false;
+        const mem = parseInt(a.rmm_mem_percent) || 0;
+        let ramValue = 999;
+        const match = (a.ram || '').match(/(\d+)/);
+        if (match) ramValue = parseInt(match[1]);
+        return mem >= 90 || (ramValue > 0 && ramValue < 16);
+      });
+    } else if (currentAtivoFilter === 'hd_cheio') {
+      list = list.filter(a => (parseInt(a.rmm_disk_percent) || 0) >= 90);
     } else {
       list = list.filter(a => _normS(a.status) === _normS(currentAtivoFilter));
     }
@@ -547,12 +559,26 @@ function _updateAtivoFilterCounts(fullList) {
     { label: 'Saindo para envio',  value: 'saindo para envio' },
     { label: 'Entregue',  value: 'entregue' },
     { label: 'Não postado ainda',  value: 'nao postado ainda' },
-    { label: 'Offline (RMM)',  value: 'offline' }
+    { label: 'Offline (RMM)',  value: 'offline' },
+    { label: 'Upgrade de RAM', value: 'ram_upgrade' },
+    { label: 'HD Quase Cheio', value: 'hd_cheio' }
   ];
 
   const statusCount = v => {
     if (v === 'todos') return listParaStatus.length;
     if (v === 'offline') return listParaStatus.filter(a => getOfflineStatus(a) !== null).length;
+    if (v === 'ram_upgrade') {
+      return listParaStatus.filter(a => {
+        const status = (a.status || '').toLowerCase();
+        if (status !== 'estoque' && status !== 'em uso') return false;
+        const mem = parseInt(a.rmm_mem_percent) || 0;
+        let ramValue = 999;
+        const match = (a.ram || '').match(/(\d+)/);
+        if (match) ramValue = parseInt(match[1]);
+        return mem >= 90 || (ramValue > 0 && ramValue < 16);
+      }).length;
+    }
+    if (v === 'hd_cheio') return listParaStatus.filter(a => (parseInt(a.rmm_disk_percent) || 0) >= 90).length;
     return listParaStatus.filter(a => norm(a.status) === norm(v)).length;
   };
 

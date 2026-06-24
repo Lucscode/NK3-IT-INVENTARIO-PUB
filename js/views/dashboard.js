@@ -31,6 +31,34 @@ async function renderDashboard() {
   const offEl = document.getElementById('statOffline');
   if (offEl) offEl.textContent = offCount;
 
+  // HD Cheio e Upgrade RAM
+  let hdCheioCount = 0;
+  let ramUpgradeCount = 0;
+
+  ativos.forEach(a => {
+    const disk = parseInt(a.rmm_disk_percent) || 0;
+    if (disk >= 90) hdCheioCount++;
+    
+    const mem = parseInt(a.rmm_mem_percent) || 0;
+    const ramStr = a.ram || '';
+    const match = ramStr.match(/(\d+)/);
+    let ramValue = 999;
+    if (match) ramValue = parseInt(match[1]);
+    
+    if (mem >= 90 || (ramValue > 0 && ramValue < 16)) {
+      const status = (a.status || '').toLowerCase();
+      if (status === 'estoque' || status === 'em uso') {
+        ramUpgradeCount++;
+      }
+    }
+  });
+
+  const statHDEl = document.getElementById('statHD');
+  if (statHDEl) statHDEl.textContent = hdCheioCount;
+
+  const statRAMEl = document.getElementById('statRAM');
+  if (statRAMEl) statRAMEl.textContent = ramUpgradeCount;
+
   const tipoFilter = document.getElementById('dashFilterTipo')?.value || '';
   const statusFilter = document.getElementById('dashFilterStatus')?.value || '';
   const search = document.getElementById('globalSearch')?.value.toLowerCase() || '';

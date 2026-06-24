@@ -59,12 +59,10 @@ async function renderSolicitacoes() {
           onclick="openSolDetalhe('${s.id}')" title="Ver Detalhes">
           <i class="bi bi-eye"></i>
         </button>
-        ${s.status === 'cancelado'
-      ? `<button class="btn btn-danger btn-sm" style="padding:4px 8px;"
-               onclick="deleteSol('${s.id}')" title="Excluir">
-               <i class="bi bi-trash"></i>
-             </button>`
-      : ''}
+        <button class="btn btn-danger btn-sm" style="padding:4px 8px;"
+          onclick="deleteSol('${s.id}')" title="Excluir">
+          <i class="bi bi-trash"></i>
+        </button>
       </div>
     </td>
   </tr>`).join('') || `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text2);">Nenhuma solicitação</td></tr>`;
@@ -177,7 +175,7 @@ Observações: ${s.obs || '—'}`);
 }
 
 async function deleteSol(id) {
-  if (!confirm('Tem certeza que deseja excluir esta solicitação cancelada?')) return;
+  if (!confirm('Tem certeza que deseja excluir esta solicitação?')) return;
   await dbDeleteSolicitacao(id);
   notify('Solicitação excluída!');
   renderSolicitacoes();
