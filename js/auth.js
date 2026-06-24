@@ -90,6 +90,8 @@ async function doDemoLogin() {
     _setUserUI(currentUser);
     _applyRoleSidebar(currentUser.role);
 
+    if (typeof initDemoMock === 'function') initDemoMock();
+
     goTo('dashboard');
 
     updateStats();
