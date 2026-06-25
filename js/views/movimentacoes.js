@@ -6,7 +6,7 @@ async function renderMovimentacoes() {
   
   const dlAtivos = document.getElementById('movAtivosList');
   if (dlAtivos) {
-    dlAtivos.innerHTML = ativos.map(a => `<option value="${a.patrimonio || a.serie || a.nome}">${a.nome} (${a.tipo || 'Equipamento'}) - Status atual: ${a.status} ${a.serie ? '- S/N: ' + a.serie : ''}</option>`).join('');
+    dlAtivos.innerHTML = ativos.map(a => `<option value="${a.patrimonio || a.serie || a.nome}">${a.nome} ${a.modelo ? '['+a.modelo+']' : ''} - Status: ${a.status} ${a.serie ? '- S/N: ' + a.serie : ''}</option>`).join('');
   }
 
   const dlColabs = document.getElementById('movColabsList');
