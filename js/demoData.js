@@ -141,6 +141,7 @@ window.initDemoMock = function() {
 
   window.dbGetHistorico = async () => window.demoDB.historico.sort((a,b) => new Date(b.created_at||a.atribuido||0) - new Date(a.created_at||a.atribuido||0));
   window.dbAddHistorico = async (payload) => { payload.id = _uuid(); payload.created_at = _now(); window.demoDB.historico.unshift(payload); };
+  window.dbDeleteHistorico = async (id) => { window.demoDB.historico = window.demoDB.historico.filter(h => h.id !== id); };
 
   window.dbGetKitEstoque = async () => window.demoDB.kit_estoque;
   window.dbUpdateKitItem = async (item, qtd) => { window.demoDB.kit_estoque[item] = qtd; };

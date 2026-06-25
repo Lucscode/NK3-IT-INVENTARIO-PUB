@@ -151,6 +151,7 @@ async function renderMovimentacoesHistory() {
               <th>Máquina</th>
               <th>Colaborador</th>
               <th>Observação</th>
+              <th style="width: 50px;">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -167,6 +168,11 @@ async function renderMovimentacoesHistory() {
                 <td style="font-weight:600;font-size:13px;">${h.ativo_nome}</td>
                 <td style="font-size:13px;">${h.colab || '—'}</td>
                 <td style="font-size:12px;color:var(--text2);">${h.obs || '—'}</td>
+                <td>
+                  <button class="icon-btn" onclick="excluirMovimentacao('${h.id}')" title="Excluir movimentação">
+                    <i class="bi bi-trash" style="color: var(--danger, #ef4444);"></i>
+                  </button>
+                </td>
               </tr>`;
             }).join('')}
           </tbody>
@@ -181,3 +187,15 @@ async function renderMovimentacoesHistory() {
   }
 }
 
+window.excluirMovimentacao = async function(id) {
+  if (!confirm('Tem certeza que deseja excluir esta movimentação? Essa ação removerá o registro do histórico.')) return;
+  
+  try {
+    notify('Excluindo movimentação...', 'info');
+    await dbDeleteHistorico(id);
+    notify('Movimentação excluída com sucesso!', 'success');
+    await renderMovimentacoesHistory();
+  } catch (error) {
+    notify(`Erro ao excluir movimentação: ${error.message || error}`, 'error');
+  }
+}

@@ -139,6 +139,12 @@ async function dbAddHistorico(payload) {
   if (error) _throw('Erro ao registrar histórico', error);
 }
 
+async function dbDeleteHistorico(id) {
+  const { error } = await sb.from('historico').delete().eq('id', id);
+  if (error) _throw('Erro ao deletar histórico', error);
+  return true;
+}
+
 // ─── KITS ─────────────────────────────────────────────────────
 async function dbGetKitEstoque() {
   const { data, error } = await sb.from('kit_estoque').select('*');
