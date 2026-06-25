@@ -6,7 +6,7 @@ async function renderMovimentacoes() {
   
   const dlAtivos = document.getElementById('movAtivosList');
   if (dlAtivos) {
-    dlAtivos.innerHTML = ativos.map(a => `<option value="${a.patrimonio}">${a.nome} (${a.tipo || 'Equipamento'}) - Status atual: ${a.status}</option>`).join('');
+    dlAtivos.innerHTML = ativos.map(a => `<option value="${a.patrimonio || a.serie || a.nome}">${a.nome} (${a.tipo || 'Equipamento'}) - Status atual: ${a.status} ${a.serie ? '- S/N: ' + a.serie : ''}</option>`).join('');
   }
 
   const dlColabs = document.getElementById('movColabsList');
@@ -59,11 +59,12 @@ async function registrarMovimentacao() {
   // Localiza o ativo no cache
   const ativo = _cacheAtivos.find(a => 
     (a.patrimonio && a.patrimonio.toLowerCase() === patrimonioInput.toLowerCase()) || 
-    (a.nome && a.nome.toLowerCase() === patrimonioInput.toLowerCase())
+    (a.nome && a.nome.toLowerCase() === patrimonioInput.toLowerCase()) ||
+    (a.serie && a.serie.toLowerCase() === patrimonioInput.toLowerCase())
   );
 
   if (!ativo) {
-    notify('Máquina não encontrada com este patrimônio ou nome.', 'error');
+    notify('Máquina não encontrada com este patrimônio, nome ou S/N.', 'error');
     return;
   }
 
