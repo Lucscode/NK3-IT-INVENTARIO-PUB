@@ -55,13 +55,16 @@ async function deleteColab(id) {
 async function renderColabs() {
   const colabs = await dbGetColabs();
   _cacheColabs = colabs;
-  const search = document.getElementById('globalSearch').value.toLowerCase();
+  const search = document.getElementById('globalSearch').value.toLowerCase().trim();
   let list = colabs;
-  if (search) list = list.filter(c =>
-    (c.nome||'').toLowerCase().includes(search) ||
-    (c.email||'').toLowerCase().includes(search) ||
-    (c.dept||'').toLowerCase().includes(search)
-  );
+  if (search) {
+    const _n = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const terms = _n(search).split(/\s+/);
+    list = list.filter(c => {
+      const fullText = _n([c.nome, c.email, c.dept].join(' '));
+      return terms.every(t => fullText.includes(t));
+    });
+  }
 
   // Subtítulo
   const sub = document.getElementById('pageSub');

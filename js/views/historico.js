@@ -12,12 +12,16 @@ async function renderHistorico() {
   const hist = await dbGetHistorico();
   _cacheHistorico = hist;
 
-  const search = document.getElementById('globalSearch').value.toLowerCase();
+  const search = document.getElementById('globalSearch').value.toLowerCase().trim();
   let list = hist;
-  if (search) list = list.filter(h =>
-    (h.ativo_nome||'').toLowerCase().includes(search) ||
-    (h.colab||'').toLowerCase().includes(search)
-  );
+  if (search) {
+    const _n = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const terms = _n(search).split(/\s+/);
+    list = list.filter(h => {
+      const fullText = _n([h.ativo_nome, h.colab].join(' '));
+      return terms.every(t => fullText.includes(t));
+    });
+  }
 
   // Subtítulo
   const sub = document.getElementById('pageSub');

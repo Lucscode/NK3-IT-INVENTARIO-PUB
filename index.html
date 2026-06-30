@@ -383,27 +383,34 @@
             <div class="section-header">
               <div class="section-title">Ativos Recentes</div>
               <div style="display:flex; gap:8px; align-items:center;">
-                <select id="dashFilterTipo" class="hide-mobile"
-                  style="padding: 4px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg2); color: var(--text);"
-                  onchange="renderDashboard()">
-                  <option value="">Todos os Tipos</option>
-                  <option value="Notebook">Notebook</option>
-                  <option value="Desktop">Desktop</option>
-                  <option value="Monitor">Monitor</option>
-                  <option value="Celular">Celular</option>
-                </select>
-                <select id="dashFilterStatus" class="hide-mobile"
-                  style="padding: 4px 8px; font-size: 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg2); color: var(--text);"
-                  onchange="renderDashboard()">
-                  <option value="">Qualquer Status</option>
-                  <option value="disponivel">Disponível</option>
-                  <option value="em uso">Em Uso</option>
-                  <option value="manutencao">Manutenção</option>
-                  <option value="estoque">Estoque</option>
-                  <option value="saindo para envio">Saindo para envio</option>
-                  <option value="entregue">Entregue</option>
-                  <option value="nao postado ainda">Não postado ainda</option>
-                </select>
+                <div class="filter-dropdown hide-mobile">
+                  <button class="filter-btn" onclick="toggleFilterMenu('dashFilterTipoMenu')" id="btnDashFilterTipo">
+                    <i data-lucide="filter"></i> Tipo <span class="filter-badge" id="badgeDashFilterTipo" style="display:none;">1</span>
+                  </button>
+                  <div id="dashFilterTipoMenu" class="filter-menu">
+                    <div class="filter-item active" onclick="if(typeof renderDashboard==='function'){document.getElementById('btnDashFilterTipo').dataset.val=''; renderDashboard(); toggleFilterMenu('dashFilterTipoMenu');}">Todos os Tipos</div>
+                    <div class="filter-item" onclick="if(typeof renderDashboard==='function'){document.getElementById('btnDashFilterTipo').dataset.val='Notebook'; renderDashboard(); toggleFilterMenu('dashFilterTipoMenu');}">Notebook</div>
+                    <div class="filter-item" onclick="if(typeof renderDashboard==='function'){document.getElementById('btnDashFilterTipo').dataset.val='Desktop'; renderDashboard(); toggleFilterMenu('dashFilterTipoMenu');}">Desktop</div>
+                    <div class="filter-item" onclick="if(typeof renderDashboard==='function'){document.getElementById('btnDashFilterTipo').dataset.val='Monitor'; renderDashboard(); toggleFilterMenu('dashFilterTipoMenu');}">Monitor</div>
+                    <div class="filter-item" onclick="if(typeof renderDashboard==='function'){document.getElementById('btnDashFilterTipo').dataset.val='Celular'; renderDashboard(); toggleFilterMenu('dashFilterTipoMenu');}">Celular</div>
+                  </div>
+                </div>
+                
+                <div class="filter-dropdown hide-mobile">
+                  <button class="filter-btn" onclick="toggleFilterMenu('dashFilterStatusMenu')" id="btnDashFilterStatus">
+                    <i data-lucide="filter"></i> Status <span class="filter-badge" id="badgeDashFilterStatus" style="display:none;">1</span>
+                  </button>
+                  <div id="dashFilterStatusMenu" class="filter-menu">
+                    <div class="filter-item active" onclick="if(typeof renderDashboard==='function'){document.getElementById('btnDashFilterStatus').dataset.val=''; renderDashboard(); toggleFilterMenu('dashFilterStatusMenu');}">Qualquer Status</div>
+                    <div class="filter-item" onclick="if(typeof renderDashboard==='function'){document.getElementById('btnDashFilterStatus').dataset.val='disponivel'; renderDashboard(); toggleFilterMenu('dashFilterStatusMenu');}">Disponível</div>
+                    <div class="filter-item" onclick="if(typeof renderDashboard==='function'){document.getElementById('btnDashFilterStatus').dataset.val='em uso'; renderDashboard(); toggleFilterMenu('dashFilterStatusMenu');}">Em Uso</div>
+                    <div class="filter-item" onclick="if(typeof renderDashboard==='function'){document.getElementById('btnDashFilterStatus').dataset.val='manutencao'; renderDashboard(); toggleFilterMenu('dashFilterStatusMenu');}">Manutenção</div>
+                    <div class="filter-item" onclick="if(typeof renderDashboard==='function'){document.getElementById('btnDashFilterStatus').dataset.val='estoque'; renderDashboard(); toggleFilterMenu('dashFilterStatusMenu');}">Estoque</div>
+                    <div class="filter-item" onclick="if(typeof renderDashboard==='function'){document.getElementById('btnDashFilterStatus').dataset.val='saindo para envio'; renderDashboard(); toggleFilterMenu('dashFilterStatusMenu');}">Saindo para envio</div>
+                    <div class="filter-item" onclick="if(typeof renderDashboard==='function'){document.getElementById('btnDashFilterStatus').dataset.val='entregue'; renderDashboard(); toggleFilterMenu('dashFilterStatusMenu');}">Entregue</div>
+                    <div class="filter-item" onclick="if(typeof renderDashboard==='function'){document.getElementById('btnDashFilterStatus').dataset.val='nao postado ainda'; renderDashboard(); toggleFilterMenu('dashFilterStatusMenu');}">Não postado ainda</div>
+                  </div>
+                </div>
                 <button class="btn btn-ghost btn-sm" onclick="goTo('ativos')">Ver todos →</button>
               </div>
             </div>
@@ -469,15 +476,33 @@
         <div class="page" id="page-ativos">
           <div class="toolbar">
             <div class="toolbar-left">
-              <div style="display:flex;gap:10px;align-items:center;width:100%;max-width:500px;">
-                <select id="ativoTipoSelect" onchange="filterAtivoTipo(this.value)" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;flex:1;">
-                  <option value="todos">Todos os Tipos</option>
-                  <!-- rendered by js -->
-                </select>
-                <select id="ativoStatusSelect" onchange="filterAtivos(this.value)" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;flex:1;">
-                  <option value="todos">Qualquer Status</option>
-                  <!-- rendered by js -->
-                </select>
+              <div style="display:flex;gap:10px;align-items:center;width:100%;max-width:700px;">
+                <div class="filter-dropdown">
+                  <button class="filter-btn" onclick="toggleFilterMenu('ativoTipoMenu')" id="btnAtivoTipo">
+                    <i data-lucide="filter"></i> Tipo <span class="filter-badge" id="badgeAtivoTipo" style="display:none;">1</span>
+                  </button>
+                  <div id="ativoTipoMenu" class="filter-menu">
+                    <!-- rendered by js -->
+                  </div>
+                </div>
+
+                <div class="filter-dropdown">
+                  <button class="filter-btn" onclick="toggleFilterMenu('ativoStatusMenu')" id="btnAtivoStatus">
+                    <i data-lucide="filter"></i> Status <span class="filter-badge" id="badgeAtivoStatus" style="display:none;">1</span>
+                  </button>
+                  <div id="ativoStatusMenu" class="filter-menu">
+                    <!-- rendered by js -->
+                  </div>
+                </div>
+
+                <div class="filter-dropdown">
+                  <button class="filter-btn" onclick="toggleFilterMenu('ativoModeloMenu')" id="btnAtivoModelo">
+                    <i data-lucide="filter"></i> Modelo <span class="filter-badge" id="badgeAtivoModelo" style="display:none;">1</span>
+                  </button>
+                  <div id="ativoModeloMenu" class="filter-menu">
+                    <!-- rendered by js -->
+                  </div>
+                </div>
               </div>
             </div>
             <div class="toolbar-right">
@@ -502,10 +527,14 @@
           <div class="toolbar">
             <div class="toolbar-left">
               <div style="display:flex;gap:10px;align-items:center;width:100%;max-width:300px;">
-                <select id="monitorFilters" onchange="filterMonitores(this.value)" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;flex:1;">
-                  <option value="todos">Todos</option>
-                  <!-- rendered by js -->
-                </select>
+                <div class="filter-dropdown">
+                  <button class="filter-btn" onclick="toggleFilterMenu('monitorFilterMenuBtn')" id="btnMonitorFilter">
+                    <i data-lucide="filter"></i> Status <span class="filter-badge" id="badgeMonitorFilter" style="display:none;">1</span>
+                  </button>
+                  <div id="monitorFilterMenuBtn" class="filter-menu">
+                    <!-- rendered by js -->
+                  </div>
+                </div>
               </div>
             </div>
             <div class="toolbar-right">
@@ -522,10 +551,14 @@
           <div class="toolbar">
             <div class="toolbar-left">
               <div style="display:flex;gap:10px;align-items:center;width:100%;max-width:300px;">
-                <select id="celularFilters" onchange="filterCelulares(this.value)" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-size:13px;flex:1;">
-                  <option value="todos">Todos</option>
-                  <!-- rendered by js -->
-                </select>
+                <div class="filter-dropdown">
+                  <button class="filter-btn" onclick="toggleFilterMenu('celularFilterMenuBtn')" id="btnCelularFilter">
+                    <i data-lucide="filter"></i> Status <span class="filter-badge" id="badgeCelularFilter" style="display:none;">1</span>
+                  </button>
+                  <div id="celularFilterMenuBtn" class="filter-menu">
+                    <!-- rendered by js -->
+                  </div>
+                </div>
               </div>
             </div>
             <div class="toolbar-right">

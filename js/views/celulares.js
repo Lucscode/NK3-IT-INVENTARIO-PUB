@@ -10,37 +10,53 @@ async function renderCelulares() {
   let list = ativos.filter(a => a.tipo === 'Celular');
   const fullCelList = [...list]; // cópia antes de filtrar
 
+  const _nc = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
   if (currentCelularFilter !== 'todos') {
-    list = list.filter(a => (a.status || '').toLowerCase() === currentCelularFilter);
+    list = list.filter(a => _nc(a.status) === _nc(currentCelularFilter));
   }
 
-  const search = document.getElementById('globalSearch')?.value.toLowerCase() || '';
-  if (search) list = list.filter(a =>
-    (a.nome || '').toLowerCase().includes(search) ||
-    (a.patrimonio || '').toLowerCase().includes(search) ||
-    (a.colab || '').toLowerCase().includes(search) ||
-    (a.marca || '').toLowerCase().includes(search) ||
-    (a.modelo || '').toLowerCase().includes(search) ||
-    (a.serie || '').toLowerCase().includes(search) ||
-    (a.numero_linha || '').toLowerCase().includes(search) ||
-    (a.imei1 || '').toLowerCase().includes(search)
-  );
+  const search = document.getElementById('globalSearch')?.value.toLowerCase().trim() || '';
+  if (search) {
+    const terms = _nc(search).split(/\s+/);
+    list = list.filter(a => {
+      const fullText = _nc([
+        a.nome, a.patrimonio, a.colab, a.marca, a.modelo, a.serie,
+        a.numero_linha, a.imei1
+      ].join(' '));
+      return terms.every(t => fullText.includes(t));
+    });
+  }
 
   // Atualizar badges de contagem nos filtros
-  const _nc = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const celFilters = [
     { label: 'Todos os Status', value: 'todos' },
     { label: 'Disponível', value: 'disponivel' },
     { label: 'Em Uso', value: 'em uso' },
     { label: 'Manutenção', value: 'manutencao' },
   ];
-  const celFContainer = document.getElementById('celularFilters');
-  if (celFContainer) {
-    celFContainer.innerHTML = celFilters.map(f => {
+  const celMenu = document.getElementById('celularFilterMenuBtn');
+  if (celMenu) {
+    celMenu.innerHTML = celFilters.map(f => {
       const n = f.value === 'todos' ? fullCelList.length : fullCelList.filter(a => _nc(a.status) === _nc(f.value)).length;
-      const selected = currentCelularFilter === f.value ? ' selected' : '';
-      return `<option value="${f.value}"${selected}>${f.label} (${n})</option>`;
+      const active = currentCelularFilter === f.value ? ' active' : '';
+      return `<div class="filter-item${active}" onclick="filterCelulares('${f.value}');toggleFilterMenu('celularFilterMenuBtn')">
+                <span>${f.label}</span>
+                <span class="filter-count" style="margin-left:8px;background:var(--bg3);padding:2px 6px;border-radius:99px;font-size:11px;">${n}</span>
+              </div>`;
     }).join('');
+    
+    const badge = document.getElementById('badgeCelularFilter');
+    if (badge) {
+      if (currentCelularFilter !== 'todos') {
+        badge.style.display = 'inline-flex';
+        badge.textContent = '1';
+        document.getElementById('btnCelularFilter').classList.add('active');
+      } else {
+        badge.style.display = 'none';
+        document.getElementById('btnCelularFilter').classList.remove('active');
+      }
+    }
   }
 
   const totalItems = list.length;

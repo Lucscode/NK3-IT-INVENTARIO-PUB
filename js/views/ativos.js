@@ -1,5 +1,6 @@
 // ===================== ATIVOS =====================
 let currentAtivoTipoFilter = 'todos';
+let currentAtivoModeloFilter = 'todos';
 let currentPageAtivos = 1;
 const ATIVOS_PER_PAGE = 20;
 function _assetPhoto(fotos, icon) {
@@ -52,18 +53,25 @@ async function renderAtivos() {
       list = list.filter(a => _normS(a.status) === _normS(currentAtivoFilter));
     }
   }
-  const search = document.getElementById('globalSearch').value.toLowerCase();
-  if (search) list = list.filter(a =>
-    (a.nome || '').toLowerCase().includes(search) ||
-    (a.patrimonio || '').toLowerCase().includes(search) ||
-    (a.colab || '').toLowerCase().includes(search) ||
-    (a.marca || '').toLowerCase().includes(search) ||
-    (a.modelo || '').toLowerCase().includes(search) ||
-    (a.serie || '').toLowerCase().includes(search) ||
-    (a.localizacao || '').toLowerCase().includes(search) ||
-    (a.proc || '').toLowerCase().includes(search) ||
-    (a.so || '').toLowerCase().includes(search)
-  );
+
+  if (currentAtivoModeloFilter !== 'todos') {
+    list = list.filter(a => {
+      const mod = _normS(a.modelo || '');
+      const searchMod = _normS(currentAtivoModeloFilter);
+      return mod.includes(searchMod);
+    });
+  }
+  const search = document.getElementById('globalSearch').value.toLowerCase().trim();
+  if (search) {
+    const terms = _normS(search).split(' ');
+    list = list.filter(a => {
+      const fullText = _normS([
+        a.nome, a.patrimonio, a.colab, a.marca, a.modelo, a.serie,
+        a.localizacao, a.proc, a.so
+      ].join(' '));
+      return terms.every(t => fullText.includes(t));
+    });
+  }
 
   const totalItems = list.length;
   const totalPages = Math.ceil(totalItems / ATIVOS_PER_PAGE) || 1;
@@ -147,6 +155,12 @@ function filterAtivos(f) {
 
 function filterAtivoTipo(tipo) {
   currentAtivoTipoFilter = tipo;
+  currentPageAtivos = 1;
+  renderAtivos();
+}
+
+function filterAtivoModelo(m) {
+  currentAtivoModeloFilter = m;
   currentPageAtivos = 1;
   renderAtivos();
 }
@@ -533,13 +547,29 @@ function _updateAtivoFilterCounts(fullList) {
     return fullList.filter(a => norm(a.tipo) === norm(v)).length;
   };
 
-  const tipoContainer = document.getElementById('ativoTipoSelect');
-  if (tipoContainer) {
-    tipoContainer.innerHTML = tipoFilters.map(f => {
+  const tipoMenu = document.getElementById('ativoTipoMenu');
+  if (tipoMenu) {
+    tipoMenu.innerHTML = tipoFilters.map(f => {
       const n = tipoCount(f.value);
-      const selected = currentAtivoTipoFilter === f.value ? ' selected' : '';
-      return `<option value="${f.value}"${selected}>${f.label} (${n})</option>`;
+      const active = currentAtivoTipoFilter === f.value ? ' active' : '';
+      return `<div class="filter-item${active}" onclick="filterAtivoTipo('${f.value}');toggleFilterMenu('ativoTipoMenu')">
+                <span>${f.label}</span>
+                <span class="filter-count" style="margin-left:8px;background:var(--bg3);padding:2px 6px;border-radius:99px;font-size:11px;">${n}</span>
+              </div>`;
     }).join('');
+    
+    // Atualiza o botão e badge
+    const badge = document.getElementById('badgeAtivoTipo');
+    if (badge) {
+      if (currentAtivoTipoFilter !== 'todos' && currentAtivoTipoFilter !== 'todos_geral') {
+        badge.style.display = 'inline-flex';
+        badge.textContent = '1';
+        document.getElementById('btnAtivoTipo').classList.add('active');
+      } else {
+        badge.style.display = 'none';
+        document.getElementById('btnAtivoTipo').classList.remove('active');
+      }
+    }
   }
 
   // ── Filtros de Status ────────────────────────────────────
@@ -583,12 +613,75 @@ function _updateAtivoFilterCounts(fullList) {
     return listParaStatus.filter(a => norm(a.status) === norm(v)).length;
   };
 
-  const statusContainer = document.getElementById('ativoStatusSelect');
-  if (statusContainer) {
-    statusContainer.innerHTML = statusFilters.map(f => {
+  const statusMenu = document.getElementById('ativoStatusMenu');
+  if (statusMenu) {
+    statusMenu.innerHTML = statusFilters.map(f => {
       const n = statusCount(f.value);
-      const selected = currentAtivoFilter === f.value ? ' selected' : '';
-      return `<option value="${f.value}"${selected}>${f.label} (${n})</option>`;
+      const active = currentAtivoFilter === f.value ? ' active' : '';
+      return `<div class="filter-item${active}" onclick="filterAtivos('${f.value}');toggleFilterMenu('ativoStatusMenu')">
+                <span>${f.label}</span>
+                <span class="filter-count" style="margin-left:8px;background:var(--bg3);padding:2px 6px;border-radius:99px;font-size:11px;">${n}</span>
+              </div>`;
     }).join('');
+    
+    const badge = document.getElementById('badgeAtivoStatus');
+    if (badge) {
+      if (currentAtivoFilter !== 'todos') {
+        badge.style.display = 'inline-flex';
+        badge.textContent = '1';
+        document.getElementById('btnAtivoStatus').classList.add('active');
+      } else {
+        badge.style.display = 'none';
+        document.getElementById('btnAtivoStatus').classList.remove('active');
+      }
+    }
+  }
+
+  // ── Filtros de Modelo ────────────────────────────────────
+  const listParaModelo = listParaStatus.filter(a => currentAtivoFilter === 'todos' || statusCount(currentAtivoFilter) > 0 ? (currentAtivoFilter !== 'todos' ? norm(a.status) === norm(currentAtivoFilter) : true) : true); // Simplificando
+  
+  const modeloFilters = [
+    { label: 'Todos os Modelos', value: 'todos' },
+    { label: 'Legion', value: 'legion' },
+    { label: 'Aspire', value: 'aspire' },
+    { label: 'Dell Pro', value: 'dell pro' },
+    { label: 'G15', value: 'g15' },
+    { label: 'Ideapad', value: 'ideapad' },
+    { label: 'Inspiron', value: 'inspiron' },
+    { label: 'Latitude', value: 'latitude' },
+    { label: 'Macbook', value: 'macbook' },
+    { label: 'Nitro', value: 'nitro' }
+  ];
+
+  const modeloCount = v => {
+    if (v === 'todos') return fullList.length; // Conta total sem filtro de modelo, ou usa listParaStatus
+    return fullList.filter(a => {
+      const mod = norm(a.modelo || '');
+      return mod.includes(norm(v));
+    }).length;
+  };
+
+  const modeloMenu = document.getElementById('ativoModeloMenu');
+  if (modeloMenu) {
+    modeloMenu.innerHTML = modeloFilters.map(f => {
+      const n = modeloCount(f.value);
+      const active = currentAtivoModeloFilter === f.value ? ' active' : '';
+      return `<div class="filter-item${active}" onclick="filterAtivoModelo('${f.value}');toggleFilterMenu('ativoModeloMenu')">
+                <span>${f.label}</span>
+                <span class="filter-count" style="margin-left:8px;background:var(--bg3);padding:2px 6px;border-radius:99px;font-size:11px;">${n}</span>
+              </div>`;
+    }).join('');
+    
+    const badge = document.getElementById('badgeAtivoModelo');
+    if (badge) {
+      if (currentAtivoModeloFilter !== 'todos') {
+        badge.style.display = 'inline-flex';
+        badge.textContent = '1';
+        document.getElementById('btnAtivoModelo').classList.add('active');
+      } else {
+        badge.style.display = 'none';
+        document.getElementById('btnAtivoModelo').classList.remove('active');
+      }
+    }
   }
 }

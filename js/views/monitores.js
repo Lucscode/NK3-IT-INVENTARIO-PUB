@@ -73,22 +73,24 @@ async function renderMonitores() {
   let list = ativos.filter(a => a.tipo === 'Monitor');
   const fullMonList = [...list]; // cópia antes de filtrar
 
+  const _nm = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
   if (currentMonitorFilter !== 'todos') {
-    list = list.filter(a => (a.status || '').toLowerCase() === currentMonitorFilter);
+    list = list.filter(a => _nm(a.status) === _nm(currentMonitorFilter));
   }
 
-  const search = document.getElementById('globalSearch')?.value.toLowerCase() || '';
-  if (search) list = list.filter(a =>
-    (a.nome || '').toLowerCase().includes(search) ||
-    (a.patrimonio || '').toLowerCase().includes(search) ||
-    (a.colab || '').toLowerCase().includes(search) ||
-    (a.marca || '').toLowerCase().includes(search) ||
-    (a.modelo || '').toLowerCase().includes(search) ||
-    (a.serie || '').toLowerCase().includes(search)
-  );
+  const search = document.getElementById('globalSearch')?.value.toLowerCase().trim() || '';
+  if (search) {
+    const terms = _nm(search).split(/\s+/);
+    list = list.filter(a => {
+      const fullText = _nm([
+        a.nome, a.patrimonio, a.colab, a.marca, a.modelo, a.serie
+      ].join(' '));
+      return terms.every(t => fullText.includes(t));
+    });
+  }
 
   // Atualizar badges de contagem nos filtros
-  const _nm = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const monFilters = [
     { label: 'Todos os Status', value: 'todos' },
     { label: 'Em Uso', value: 'em uso' },
@@ -98,13 +100,28 @@ async function renderMonitores() {
     { label: 'Entregue', value: 'entregue' },
     { label: 'Não postado ainda', value: 'nao postado ainda' },
   ];
-  const monContainer = document.getElementById('monitorFilters');
-  if (monContainer) {
-    monContainer.innerHTML = monFilters.map(f => {
+  const monMenu = document.getElementById('monitorFilterMenuBtn');
+  if (monMenu) {
+    monMenu.innerHTML = monFilters.map(f => {
       const n = f.value === 'todos' ? fullMonList.length : fullMonList.filter(a => _nm(a.status) === _nm(f.value)).length;
-      const selected = currentMonitorFilter === f.value ? ' selected' : '';
-      return `<option value="${f.value}"${selected}>${f.label} (${n})</option>`;
+      const active = currentMonitorFilter === f.value ? ' active' : '';
+      return `<div class="filter-item${active}" onclick="filterMonitores('${f.value}');toggleFilterMenu('monitorFilterMenuBtn')">
+                <span>${f.label}</span>
+                <span class="filter-count" style="margin-left:8px;background:var(--bg3);padding:2px 6px;border-radius:99px;font-size:11px;">${n}</span>
+              </div>`;
     }).join('');
+    
+    const badge = document.getElementById('badgeMonitorFilter');
+    if (badge) {
+      if (currentMonitorFilter !== 'todos') {
+        badge.style.display = 'inline-flex';
+        badge.textContent = '1';
+        document.getElementById('btnMonitorFilter').classList.add('active');
+      } else {
+        badge.style.display = 'none';
+        document.getElementById('btnMonitorFilter').classList.remove('active');
+      }
+    }
   }
 
   const totalItems = list.length;

@@ -67,20 +67,40 @@ async function renderDashboard() {
   const statRAMEl = document.getElementById('statRAM');
   if (statRAMEl) statRAMEl.textContent = ramUpgradeCount;
 
-  const tipoFilter = document.getElementById('dashFilterTipo')?.value || '';
-  const statusFilter = document.getElementById('dashFilterStatus')?.value || '';
-  const search = document.getElementById('globalSearch')?.value.toLowerCase() || '';
+  const tipoFilter = document.getElementById('btnDashFilterTipo')?.dataset.val || '';
+  const statusFilter = document.getElementById('btnDashFilterStatus')?.dataset.val || '';
+
+  // Update badges
+  const bTipo = document.getElementById('badgeDashFilterTipo');
+  if (bTipo) {
+    bTipo.style.display = tipoFilter ? 'inline-flex' : 'none';
+    document.getElementById('btnDashFilterTipo').classList.toggle('active', !!tipoFilter);
+  }
+  const bStatus = document.getElementById('badgeDashFilterStatus');
+  if (bStatus) {
+    bStatus.style.display = statusFilter ? 'inline-flex' : 'none';
+    document.getElementById('btnDashFilterStatus').classList.toggle('active', !!statusFilter);
+  }
+
+  // Update active items
+  document.querySelectorAll('#dashFilterTipoMenu .filter-item').forEach(el => {
+    el.classList.toggle('active', (el.getAttribute('onclick') || '').includes(`val='${tipoFilter}'`));
+  });
+  document.querySelectorAll('#dashFilterStatusMenu .filter-item').forEach(el => {
+    el.classList.toggle('active', (el.getAttribute('onclick') || '').includes(`val='${statusFilter}'`));
+  });
+  const search = document.getElementById('globalSearch')?.value.toLowerCase().trim() || '';
 
   if (tipoFilter) ativos = ativos.filter(a => a.tipo === tipoFilter);
   if (statusFilter) ativos = ativos.filter(a => a.status === statusFilter);
-  if (search) ativos = ativos.filter(a =>
-    (a.nome || '').toLowerCase().includes(search) ||
-    (a.patrimonio || '').toLowerCase().includes(search) ||
-    (a.colab || '').toLowerCase().includes(search) ||
-    (a.marca || '').toLowerCase().includes(search) ||
-    (a.modelo || '').toLowerCase().includes(search) ||
-    (a.serie || '').toLowerCase().includes(search)
-  );
+  if (search) {
+    const _n = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const terms = _n(search).split(/\s+/);
+    ativos = ativos.filter(a => {
+      const fullText = _n([a.nome, a.patrimonio, a.colab, a.marca, a.modelo, a.serie].join(' '));
+      return terms.every(t => fullText.includes(t));
+    });
+  }
 
   const recentes = ativos.slice(0, 6);
   const fotosMap = {};

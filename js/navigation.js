@@ -75,3 +75,22 @@ function toggleSidebar() {
   const sb = document.getElementById('sidebar');
   if (sb) sb.classList.toggle('open');
 }
+
+// ===================== FILTER FUNNEL UI =====================
+function toggleFilterMenu(menuId) {
+  const menu = document.getElementById(menuId);
+  if (!menu) return;
+  // Close other open menus
+  document.querySelectorAll('.filter-menu').forEach(m => {
+    if (m.id !== menuId) m.classList.remove('open');
+  });
+  menu.classList.toggle('open');
+}
+
+// Close filter menus when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.filter-dropdown')) {
+    document.querySelectorAll('.filter-menu').forEach(m => m.classList.remove('open'));
+  }
+});
+
